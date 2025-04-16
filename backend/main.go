@@ -2,6 +2,7 @@ package main
 
 import (
 	"backend/config"
+	"backend/routes"
 	"log"
 	"net/http"
 
@@ -16,7 +17,11 @@ func main() {
 	}
 
 	config.ConnectDB()
+	config.InitCollections(config.DB)
+
 	r := mux.NewRouter()
+
+	routes.UserRoutes(r)
 
 	// Настройка CORS
 	c := cors.New(cors.Options{
