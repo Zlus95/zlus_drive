@@ -5,8 +5,14 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"strings"
+	"regexp"
 )
+
+var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+
+func isValidEmail(email string) bool {
+	return emailRegex.MatchString(email)
+}
 
 func RegMiddlware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -18,7 +24,7 @@ func RegMiddlware(next http.HandlerFunc) http.HandlerFunc {
 		}
 		defer r.Body.Close()
 
-		if user.Email == "" || !strings.Contains(user.Email, "@") {
+		if user.Email == "" || !isValidEmail(user.Email) {
 			http.Error(w, "Invalid email", http.StatusBadRequest)
 			return
 		}
