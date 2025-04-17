@@ -1,5 +1,7 @@
+import "./index.css";
+
 function App() {
-  return <div>ффф</div>;
+  return <div className="text-red-500">aaaa</div>;
 }
 
 export default App;
