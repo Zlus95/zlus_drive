@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"backend/config"
+	"backend/middleware"
 	"backend/models"
 	"context"
 	"encoding/json"
@@ -18,7 +19,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
-	user, ok := r.Context().Value("user").(models.User)
+	user, ok := r.Context().Value(middleware.UserContextKey).(models.User)
 
 	if !ok {
 		http.Error(w, "Invalid user data", http.StatusBadRequest)

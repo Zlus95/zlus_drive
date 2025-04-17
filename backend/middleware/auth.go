@@ -14,6 +14,12 @@ func isValidEmail(email string) bool {
 	return emailRegex.MatchString(email)
 }
 
+type contextKey string
+
+const (
+	UserContextKey contextKey = "user"
+)
+
 func RegMiddlware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var user models.User
@@ -44,7 +50,7 @@ func RegMiddlware(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), "user", user)
+		ctx := context.WithValue(r.Context(), UserContextKey, user)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}
 }
