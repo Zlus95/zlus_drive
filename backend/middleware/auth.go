@@ -54,3 +54,28 @@ func RegMiddlware(next http.HandlerFunc) http.HandlerFunc {
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}
 }
+
+func LoginMiddlware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var user models.User
+
+		if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+			http.Error(w, "Invalid JSON", http.StatusBadRequest)
+			return
+		}
+		defer r.Body.Close()
+
+		if user.Email == "" || !isValidEmail(user.Email) {
+			http.Error(w, "Invalid email", http.StatusBadRequest)
+			return
+		}
+
+		if len(user.Password) < 5 {
+			http.Error(w, "Password must be at least 5 characters", http.StatusBadRequest)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), UserContextKey, user)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	}
+}
