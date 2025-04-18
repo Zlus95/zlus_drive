@@ -1,10 +1,15 @@
 import "./index.css";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
 
 function App() {
   return (
-    <div className="text-red-500">
-      <div>aaaa</div>
-    </div>
+    <QueryClientProvider client={queryClient}>
+      <div className="text-red-500">
+        <div>aaaa</div>
+      </div>
+    </QueryClientProvider>
   );
 }
 
