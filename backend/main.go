@@ -45,19 +45,4 @@ func main() {
 	if err := r.Run(":8080"); err != nil {
 		log.Fatal(err)
 	}
-	// r := mux.NewRouter()
-
-	// routes.UserRoutes(r)
-
-	// // Настройка CORS
-	// c := cors.New(cors.Options{
-	// 	AllowedOrigins:   []string{"http://localhost:3000"},
-	// 	AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-	// 	AllowedHeaders:   []string{"Content-Type", "Authorization"},
-	// 	AllowCredentials: true,
-	// })
-
-	// Запуск сервера
-	// log.Println("Server starting on :8080")
-	// log.Fatal(http.ListenAndServe(":8080", c.Handler(r)))
 }
