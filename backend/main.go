@@ -36,7 +36,10 @@ func main() {
 	})
 
 	r.Use(middleware.RegMiddlware())
+	r.Use(middleware.LoginMiddlware())
+
 	r.POST("/register", handlers.Register)
+	r.POST("login", handlers.Login)
 
 	log.Println("Server starting on :8080")
 	if err := r.Run(":8080"); err != nil {

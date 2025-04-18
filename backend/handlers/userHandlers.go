@@ -6,7 +6,6 @@ import (
 	"backend/models"
 	"backend/utils"
 	"context"
-	"encoding/json"
 	"log"
 	"net/http"
 	"time"
@@ -134,14 +133,20 @@ func Register(c *gin.Context) {
 
 // }
 
-func Login(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+func Login(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
 	defer cancel()
 
-	user, ok := r.Context().Value(middleware.UserContextKey).(models.User)
+	userValue, ok := c.Get(middleware.UserContextKey)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user data"})
+		return
+	}
+
+	user, ok := userValue.(models.User)
 
 	if !ok {
-		http.Error(w, "Invalid user data", http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user data type"})
 		return
 	}
 
@@ -152,18 +157,18 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	if err := userCollection.FindOne(ctx, bson.M{"email": user.Email}).Decode(&currentUser); err != nil {
 		if err == mongo.ErrNoDocuments {
 			log.Printf("User not found: %v", err)
-			http.Error(w, "Incorrect Email", http.StatusUnauthorized)
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Incorrect Email"})
+			return
+		} else if err != mongo.ErrNoDocuments {
+			log.Printf("Error finding user: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 			return
 		}
-
-		log.Printf("Error finding user: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(currentUser.Password), []byte(user.Password)); err != nil {
 		log.Printf("Invalid password for user %s: %v", user.Email, err)
-		http.Error(w, "Incorrect Password", http.StatusUnauthorized)
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Incorrect Password"})
 		return
 	}
 
@@ -171,12 +176,59 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Printf("JWT generation error: %v", err)
-		http.Error(w, "Login failed", http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Login failed"})
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"token": token})
+	c.JSON(http.StatusOK, gin.H{
+		"token": token,
+	})
 
 }
+
+// func Login(w http.ResponseWriter, r *http.Request) {
+// 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+// 	defer cancel()
+
+// 	user, ok := r.Context().Value(middleware.UserContextKey).(models.User)
+
+// 	if !ok {
+// 		http.Error(w, "Invalid user data", http.StatusBadRequest)
+// 		return
+// 	}
+
+// 	userCollection := config.UserCollection
+
+// 	var currentUser models.User
+
+// 	if err := userCollection.FindOne(ctx, bson.M{"email": user.Email}).Decode(&currentUser); err != nil {
+// 		if err == mongo.ErrNoDocuments {
+// 			log.Printf("User not found: %v", err)
+// 			http.Error(w, "Incorrect Email", http.StatusUnauthorized)
+// 			return
+// 		}
+
+// 		log.Printf("Error finding user: %v", err)
+// 		http.Error(w, "Internal server error", http.StatusInternalServerError)
+// 		return
+// 	}
+
+// 	if err := bcrypt.CompareHashAndPassword([]byte(currentUser.Password), []byte(user.Password)); err != nil {
+// 		log.Printf("Invalid password for user %s: %v", user.Email, err)
+// 		http.Error(w, "Incorrect Password", http.StatusUnauthorized)
+// 		return
+// 	}
+
+// 	token, err := utils.GenerateJWT(currentUser.ID.Hex())
+
+// 	if err != nil {
+// 		log.Printf("JWT generation error: %v", err)
+// 		http.Error(w, "Login failed", http.StatusInternalServerError)
+// 		return
+// 	}
+
+// 	w.Header().Set("Content-Type", "application/json")
+// 	w.WriteHeader(http.StatusOK)
+// 	json.NewEncoder(w).Encode(map[string]string{"token": token})
+
+// }

@@ -97,6 +97,34 @@ func RegMiddlware() gin.HandlerFunc {
 	}
 }
 
+func LoginMiddlware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var user models.User
+
+		if c.Request.Method == "POST" && c.Request.URL.Path == "/login" {
+			if err := c.ShouldBindJSON(&user); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"Invalid JSON": err.Error()})
+				c.Abort()
+				return
+			}
+
+			if user.Email == "" || !isValidEmail(user.Email) {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid email"})
+				c.Abort()
+				return
+			}
+
+			if len(user.Password) < 5 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Password must be at least 5 characters"})
+				c.Abort()
+				return
+			}
+			c.Set(UserContextKey, user)
+		}
+		c.Next()
+	}
+}
+
 // func LoginMiddlware(next http.HandlerFunc) http.HandlerFunc {
 // 	return func(w http.ResponseWriter, r *http.Request) {
 // 		var user models.User
