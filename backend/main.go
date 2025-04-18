@@ -2,8 +2,7 @@ package main
 
 import (
 	"backend/config"
-	"backend/handlers"
-	"backend/middleware"
+	"backend/routes"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -20,12 +19,7 @@ func main() {
 
 	r := gin.Default()
 
-	r.Use(middleware.DevelopmentCORS())
-	r.Use(middleware.RegMiddlware())
-	r.Use(middleware.LoginMiddlware())
-
-	r.POST("/register", handlers.Register)
-	r.POST("login", handlers.Login)
+	routes.SetupRoutes(r)
 
 	log.Println("Server starting on :8080")
 	if err := r.Run(":8080"); err != nil {
