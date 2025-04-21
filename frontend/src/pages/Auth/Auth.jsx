@@ -24,7 +24,7 @@ const Auth = () => {
   const mutationLogin = useMutation({
     mutationFn: login,
     onSuccess: () => navigate("/"),
-    onError: ({ response }) => alert(response.data),
+    onError: ({ response }) => alert(response.data.error),
   });
 
   const handlerSubmit = (event) => {
