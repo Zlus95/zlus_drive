@@ -8,9 +8,19 @@ import (
 )
 
 func AuthRoutes(r *gin.Engine) {
-	r.Use(middleware.RegMiddlware())
-	r.Use(middleware.LoginMiddlware())
+	r.POST("/register",
+		middleware.RegMiddlware(),
+		handlers.Register,
+	)
 
-	r.POST("/register", handlers.Register)
-	r.POST("/login", handlers.Login)
+	r.POST("/login",
+		middleware.LoginMiddlware(),
+		handlers.Login,
+	)
+
+	r.GET("/user",
+		middleware.TokenMiddlware(),
+		handlers.GetCurrentUser,
+	)
+
 }
