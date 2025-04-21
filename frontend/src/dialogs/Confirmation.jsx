@@ -1,5 +1,4 @@
 import React, { memo } from "react";
-import Button from "../ui-kit/Button/Button";
 import "./Dialog.css";
 
 const Confirmation = ({ text, title, onClose, submitButton, onClick }) => {
@@ -14,17 +13,17 @@ const Confirmation = ({ text, title, onClose, submitButton, onClick }) => {
         </div>
         <div className="textDialog">{text}</div>
         <div className="footerDialog">
-          <Button variant="outlined" onClick={onClose}>
+          <button variant="outlined" onClick={onClose}>
             Close
-          </Button>
-          <Button
+          </button>
+          <button
             onClick={() => {
               onClick && onClick();
               onClose();
             }}
           >
             {submitButton || "Submit"}
-          </Button>
+          </button>
         </div>
       </div>
     </div>

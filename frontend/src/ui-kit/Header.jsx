@@ -1,6 +1,9 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import api from "../api";
+import { useDialog } from "../providers/DialogProvider";
+import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 
 function useGetUser() {
   return useQuery({
@@ -15,6 +18,15 @@ function useGetUser() {
 
 const Header = () => {
   const { isLoading, data } = useGetUser();
+  const { showDialog, DIALOGS } = useDialog();
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+
+  const logout = useCallback(() => {
+    localStorage.removeItem("token");
+    queryClient.clear();
+    navigate("/login");
+  }, [navigate, queryClient]);
 
   const formatStorage = (bytes) => {
     if (bytes < 1024) return `${bytes} B`;
@@ -100,6 +112,18 @@ const Header = () => {
               )}
             </div>
           </div>
+          <button
+            onClick={() =>
+              showDialog(DIALOGS.CONFIRMATION, {
+                text: "Are you sure you want to log out?",
+                title: "Log out",
+                submitButton: "Log out",
+                onClick: logout,
+              })
+            }
+          >
+            Logout
+          </button>
         </div>
       </div>
     </header>
