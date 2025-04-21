@@ -1,9 +1,10 @@
 import React, { useCallback } from "react";
-import { useQuery } from "@tanstack/react-query";
-import api from "../api";
-import { useDialog } from "../providers/DialogProvider";
-import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
+import { useDialog } from "../providers/DialogProvider";
+import api from "../api";
+import Button from "./Button/Button";
 
 function useGetUser() {
   return useQuery({
@@ -112,7 +113,7 @@ const Header = () => {
               )}
             </div>
           </div>
-          <button
+          <Button
             onClick={() =>
               showDialog(DIALOGS.CONFIRMATION, {
                 text: "Are you sure you want to log out?",
@@ -123,7 +124,7 @@ const Header = () => {
             }
           >
             Logout
-          </button>
+          </Button>
         </div>
       </div>
     </header>

@@ -1,0 +1,45 @@
+.Button {
+    @apply whitespace-nowrap text-xs uppercase text-center;
+    @apply border border-solid border-transparent bg-transparent;
+    @apply p-1 px-3 rounded duration-100 active:scale-95;
+    @apply text-white box-border hover:bg-white/10;
+    @apply flex flex-row gap-2 items-center justify-center;
+
+    &.disabled {
+        @apply opacity-50 cursor-not-allowed active:scale-100;
+    }
+
+    &.regular {
+        @apply text-white box-border hover:bg-white/10;
+    }
+
+    &.outlined {
+        @apply border-primary text-primary box-border hover:bg-primary/10;
+    }
+
+
+    &.contained {
+        @apply bg-primary text-white hover:bg-primary/80;
+    }
+
+    &.error {
+        @apply bg-red-800 text-white hover:bg-red-800/80;
+    }
+
+    &.edit {
+        @apply bg-green-500 text-white hover:bg-green-500/80;
+    }
+
+    &.sm {
+        @apply text-sm;
+    }
+
+    &.md {
+        @apply text-base;
+    }
+
+    &.lg {
+        @apply text-lg;
+    }
+
+}
