@@ -80,44 +80,43 @@ const Registration = () => {
   ];
 
   return (
-    <form
-      className="flex justify-center items-center h-full"
-      onSubmit={handlerSubmit}
-    >
-      <div className="h-96 w-72 bg-black/50 border-2 border-neutral-400 rounded">
-        <p className="text-primary flex justify-center pt-4 text-lg">Chat</p>
-        <div className="flex flex-col gap-1 px-2">
-          {inputFields.map((field) => (
-            <React.Fragment key={field.id}>
-              <label htmlFor={field.id} className="text-white/50">
-                {field.label}
-              </label>
-              <input
-                placeholder={field.placeholder}
-                id={field.id}
-                onChange={changeInput}
-                ref={field.ref}
-                type={field.type || "text"}
-              />
-            </React.Fragment>
-          ))}
+    <div className="flex justify-center items-center h-screen w-full">
+      <form className="w-full max-w-xs" onSubmit={handlerSubmit}>
+        <div className="h-96 w-72 bg-black/50 border-2 border-neutral-400 rounded">
+          <p className="text-primary flex justify-center pt-4 text-lg">Drive</p>
+          <div className="flex flex-col gap-1 px-2">
+            {inputFields.map((field) => (
+              <React.Fragment key={field.id}>
+                <label htmlFor={field.id} className="text-white/50">
+                  {field.label}
+                </label>
+                <input
+                  placeholder={field.placeholder}
+                  id={field.id}
+                  onChange={changeInput}
+                  ref={field.ref}
+                  type={field.type || "text"}
+                />
+              </React.Fragment>
+            ))}
+          </div>
+          <div className="flex justify-center pt-4">
+            <button
+              className={validForm ? "text-primary" : "text-primary/50"}
+              disabled={!validForm}
+            >
+              Sign up
+            </button>
+          </div>
+          <div className="p-4 flex gap-2">
+            <p className="text-white/50">Already have an account?</p>
+            <Link to="/login" className="text-primary">
+              Sign in
+            </Link>
+          </div>
         </div>
-        <div className="flex justify-center pt-4">
-          <button
-            className={validForm ? "text-primary" : "text-primary/50"}
-            disabled={!validForm}
-          >
-            Sign up
-          </button>
-        </div>
-        <div className="p-4 flex gap-2">
-          <p className="text-white/50">Already have an account?</p>
-          <Link to="/login" className="text-primary">
-            Sign in
-          </Link>
-        </div>
-      </div>
-    </form>
+      </form>
+    </div>
   );
 };
 

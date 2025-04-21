@@ -37,51 +37,50 @@ const Auth = () => {
   };
 
   return (
-    <form
-      className="flex justify-center items-center h-full"
-      onSubmit={handlerSubmit}
-    >
-      <div className="h-80 w-72 bg-black/50 border-2 border-neutral-400 rounded">
-        <div className="text-primary flex justify-center pt-4 text-lg">
-          Chat
+    <div className="flex justify-center items-center h-screen w-full">
+      <form className="w-full max-w-xs" onSubmit={handlerSubmit}>
+        <div className="h-80 w-72 bg-black/50 border-2 border-neutral-400 rounded">
+          <div className="text-primary flex justify-center pt-4 text-lg">
+            Drive
+          </div>
+          <div className="flex flex-col gap-2 p-4">
+            <label htmlFor="email" className="text-white/50">
+              Email:
+            </label>
+            <input
+              placeholder="login"
+              id="email"
+              onChange={changeInput}
+              ref={emailRef}
+            />
+            <label htmlFor="password" className="text-white/50">
+              Password:
+            </label>
+            <input
+              placeholder="password"
+              type="password"
+              id="password"
+              ref={passwordRef}
+              onChange={changeInput}
+            />
+          </div>
+          <div className="flex justify-center pt-4">
+            <button
+              className={validForm ? "text-primary" : "text-primary/50"}
+              disabled={!validForm}
+            >
+              Sign in
+            </button>
+          </div>
+          <div className="p-4 flex gap-2">
+            <p className="text-white/50">Don't have an account?</p>
+            <Link to="/register" className="text-primary">
+              Sign up
+            </Link>
+          </div>
         </div>
-        <div className="flex flex-col gap-2 p-4">
-          <label htmlFor="email" className="text-white/50">
-            Email:
-          </label>
-          <input
-            placeholder="login"
-            id="email"
-            onChange={changeInput}
-            ref={emailRef}
-          />
-          <label htmlFor="password" className="text-white/50">
-            Password:
-          </label>
-          <input
-            placeholder="password"
-            type="password"
-            id="password"
-            ref={passwordRef}
-            onChange={changeInput}
-          />
-        </div>
-        <div className="flex justify-center pt-4">
-          <button
-            className={validForm ? "text-primary" : "text-primary/50"}
-            disabled={!validForm}
-          >
-            Sign in
-          </button>
-        </div>
-        <div className="p-4 flex gap-2">
-          <p className="text-white/50">Don't have an account?</p>
-          <Link to="/register" className="text-primary">
-            Sign up
-          </Link>
-        </div>
-      </div>
-    </form>
+      </form>
+    </div>
   );
 };
 
