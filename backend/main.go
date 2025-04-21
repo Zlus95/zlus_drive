@@ -2,6 +2,7 @@ package main
 
 import (
 	"backend/config"
+	"backend/middleware"
 	"backend/routes"
 	"log"
 
@@ -19,6 +20,7 @@ func main() {
 
 	r := gin.Default()
 
+	r.Use(middleware.DevelopmentCORS())
 	routes.AuthRoutes(r)
 
 	log.Println("Server starting on :8080")

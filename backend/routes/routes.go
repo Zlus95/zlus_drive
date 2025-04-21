@@ -8,7 +8,6 @@ import (
 )
 
 func AuthRoutes(r *gin.Engine) {
-	r.Use(middleware.DevelopmentCORS())
 	r.Use(middleware.RegMiddlware())
 	r.Use(middleware.LoginMiddlware())
 
