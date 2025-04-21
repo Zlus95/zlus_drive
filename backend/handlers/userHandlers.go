@@ -173,5 +173,14 @@ func GetCurrentUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, user)
+	response := map[string]interface{}{
+		"id":           user.ID.Hex(),
+		"name":         user.Name,
+		"lastName":     user.LastName,
+		"email":        user.Email,
+		"storageLimit": user.StorageLimit,
+		"usedStorage":  user.UsedStorage,
+	}
+
+	c.JSON(http.StatusOK, response)
 }
