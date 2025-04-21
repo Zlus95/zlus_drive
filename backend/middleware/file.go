@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"fmt"
+	"mime/multipart"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -32,9 +34,8 @@ var forbidden = map[string]bool{
 	".html": true,
 }
 
-func FileSizeMiddlWare(c *gin.Context) {
+func FileMiddlware(c *gin.Context) {
 	file, header, err := c.Request.FormFile("file")
-
 	if err != nil {
 		c.AbortWithStatusJSON(400, gin.H{"error": "File is required"})
 		return
@@ -42,49 +43,42 @@ func FileSizeMiddlWare(c *gin.Context) {
 	defer file.Close()
 
 	if header.Size > maxFileSize {
-		c.AbortWithStatusJSON(400, gin.H{"error": "File size exceeds the limit (5MB)"})
+		c.AbortWithStatusJSON(400, gin.H{"error": fmt.Sprintf("File size exceeds the limit (%dMB)", maxFileSize>>20)})
 		return
 	}
-
-	c.Next()
-}
-
-func MineFile(c *gin.Context) {
-	file, header, err := c.Request.FormFile("file")
-
-	if err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"error": "File is required"})
-		return
-	}
-
-	defer file.Close()
 
 	if isHasForbidden(header.Filename) {
 		c.AbortWithStatusJSON(400, gin.H{"error": "File extension not allowed"})
 		return
 	}
 
-	buffer := make([]byte, 512)
-	_, err = file.Read(buffer)
-
+	mimeType, err := detectMimeType(file)
 	if err != nil {
 		c.AbortWithStatusJSON(400, gin.H{"error": "Invalid file"})
 		return
 	}
 
-	file.Seek(0, 0)
-
-	mineType := http.DetectContentType(buffer)
-
-	if forbiddenMimeTypes[mineType] {
+	if forbiddenMimeTypes[mimeType] {
 		c.AbortWithStatusJSON(400, gin.H{"error": "File type not allowed"})
 		return
 	}
 
 	c.Next()
+
 }
 
 func isHasForbidden(fileName string) bool {
 	ext := strings.ToLower(filepath.Ext(fileName))
 	return forbidden[ext]
+}
+
+func detectMimeType(file multipart.File) (string, error) {
+	buffer := make([]byte, 512)
+	if _, err := file.Read(buffer); err != nil {
+		return "", err
+	}
+	if _, err := file.Seek(0, 0); err != nil {
+		return "", err
+	}
+	return http.DetectContentType(buffer), nil
 }
