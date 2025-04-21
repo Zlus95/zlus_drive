@@ -22,6 +22,16 @@ var forbiddenMimeTypes = map[string]bool{
 	"application/octet-stream":      true,
 }
 
+var forbidden = map[string]bool{
+	".exe":  true,
+	".js":   true,
+	".php":  true,
+	".sh":   true,
+	".bat":  true,
+	".com":  true,
+	".html": true,
+}
+
 func FileSizeMiddlWare(c *gin.Context) {
 	file, header, err := c.Request.FormFile("file")
 
@@ -75,13 +85,6 @@ func MineFile(c *gin.Context) {
 }
 
 func isHasForbidden(fileName string) bool {
-	forbidden := []string{".exe", ".js", ".php", ".sh", ".bat", ".com", ".html", ".svg"}
 	ext := strings.ToLower(filepath.Ext(fileName))
-
-	for _, file := range forbidden {
-		if ext == file {
-			return true
-		}
-	}
-	return false
+	return forbidden[ext]
 }
