@@ -1,12 +1,14 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
-
+import Confirmation from "../dialogs/Confirmation";
 
 const Context = createContext();
 
 export const DIALOGS = {
+  CONFIRMATION: "CONFIRMATION",
 };
 
 const COMPONENTS = {
+  CONFIRMATION: Confirmation,
 };
 
 export const DialogProvider = ({ children }) => {

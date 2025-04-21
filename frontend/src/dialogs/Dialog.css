@@ -1,0 +1,27 @@
+.Dialog {
+    @apply fixed inset-0 flex items-center justify-center bg-black bg-opacity-50;
+
+    .bgDialog {
+        @apply bg-zinc-300 p-6 rounded-lg shadow-lg w-full max-w-md;
+    }
+
+    .titleContainer {
+        @apply flex justify-between items-center mb-4;
+    }
+
+    .titleDialog {
+        @apply text-xl font-semibold;
+    }
+
+    .closeButton {
+        @apply text-gray-500 hover:text-gray-700 text-2xl leading-none;
+    }
+
+    .textDialog {
+        @apply text-lg mb-6 text-center;
+    }
+
+    .footerDialog {
+        @apply flex justify-between
+    }
+}
