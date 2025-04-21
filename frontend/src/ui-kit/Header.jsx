@@ -1,6 +1,21 @@
-import React, { memo } from "react";
+import React from "react";
+import { useQuery } from "@tanstack/react-query";
+import api from "../api";
+
+function useGetUser() {
+  return useQuery({
+    queryKey: ["user"],
+    staleTime: 1000 * 60 * 5,
+    queryFn: async () => {
+      const response = await api.get("/user");
+      return response.data;
+    },
+  });
+}
 
 const Header = () => {
+  const { isLoading, data } = useGetUser();
+
   const formatStorage = (bytes) => {
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -9,10 +24,25 @@ const Header = () => {
     return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
   };
 
-  //   const storagePercentage = Math.min(
-  //     Math.round((user.usedStorage / user.storageLimit) * 100),
-  //     100
-  //   );
+  const formatStorageUsage = (used, total) => {
+    return `${formatStorage(used)} / ${formatStorage(total)}`;
+  };
+
+  if (isLoading || !data) {
+    return (
+      <header className="bg-gray-800 text-white shadow-md">
+        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="animate-pulse h-8 w-32 bg-gray-700 rounded"></div>
+          <div className="animate-pulse h-8 w-24 bg-gray-700 rounded"></div>
+        </div>
+      </header>
+    );
+  }
+
+  const storagePercentage = Math.min(
+    Math.round((data.usedStorage / data.storageLimit) * 100),
+    100
+  );
 
   return (
     <header className="bg-gray-800 text-white shadow-md">
@@ -36,40 +66,38 @@ const Header = () => {
         </div>
 
         <div className="flex items-center space-x-6">
-          <div className="hidden md:block w-48">
-            <div className="flex justify-between text-sm mb-1">
-              {/* <span>Storage: {formatStorage(user.usedStorage)}</span>
-                <span>{formatStorage(user.storageLimit)}</span> */}
+          <div className="flex flex-col items-end">
+            <div className="text-sm mb-1">
+              {formatStorageUsage(data.usedStorage, data.storageLimit)}
             </div>
-            <div className="w-full bg-gray-700 rounded-full h-2">
-              {/* <div
-                  className={`h-2 rounded-full ${
-                    storagePercentage > 90 ? "bg-red-500" : "bg-blue-500"
-                  }`}
-                  style={{ width: `${storagePercentage}%` }}
-                ></div> */}
+            <div className="w-48 bg-gray-700 rounded-full h-2">
+              <div
+                className={`h-2 rounded-full ${
+                  storagePercentage > 90 ? "bg-red-500" : "bg-blue-500"
+                }`}
+                style={{ width: `${storagePercentage}%` }}
+              ></div>
             </div>
           </div>
 
           <div className="flex items-center space-x-3">
-            <div className="relative">
-              <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
-                {/* {user.name.charAt(0)}
-                  {user.lastName.charAt(0)} */}
+            <div className="text-right">
+              <div className="text-sm font-medium capitalize">
+                {data.name} {data.lastName}
               </div>
-              {/* {user.usedStorage / user.storageLimit > 0.9 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-gray-800"></span>
-                )} */}
+              <div className="text-xs text-gray-400 truncate max-w-[120px]">
+                {data.email}
+              </div>
             </div>
 
-            {/* Выпадающее меню */}
-            <div className="hidden md:block">
-              <div className="text-sm font-medium">
-                {/* {user.name} {user.lastName} */}
+            <div className="relative">
+              <div className="w-10 h-10 uppercase rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
+                {data.name.charAt(0)}
+                {data.lastName.charAt(0)}
               </div>
-              <div className="text-xs text-gray-400 truncate max-w-xs">
-                {/* {user.email} */}
-              </div>
+              {data.usedStorage / data.storageLimit > 0.9 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-gray-800"></span>
+              )}
             </div>
           </div>
         </div>
@@ -78,4 +106,4 @@ const Header = () => {
   );
 };
 
-export default memo(Header);
+export default Header;
