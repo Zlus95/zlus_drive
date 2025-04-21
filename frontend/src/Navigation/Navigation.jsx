@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Auth from "../pages/Auth/Auth";
 import Registration from "../pages/Auth/Registration";
+import Home from "../pages/Home/Home";
 
-const ProtectedRoute = ({ element, title }) => {
+const ProtectedRoute = ({ children }) => {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
@@ -14,7 +15,11 @@ const ProtectedRoute = ({ element, title }) => {
     }
   }, [token, navigate]);
 
-  // return <Layout title={title}>{element}</Layout>;
+  return (
+    <div className="flex justify-center items-center h-screen w-full">
+      {children}
+    </div>
+  );
 };
 
 const Navigation = () => {
@@ -23,6 +28,14 @@ const Navigation = () => {
       <Routes>
         <Route path="/login" element={<Auth />} />
         <Route path="/register" element={<Registration />} />
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </Router>
   );
