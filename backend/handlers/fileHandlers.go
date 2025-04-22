@@ -22,14 +22,14 @@ func AddFile(c *gin.Context) {
 	defer cancel()
 
 	userIDValue, ok := c.Get(middleware.UserIDKey)
-	if !ok || userIDValue == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user data"})
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "User ID not found in context"})
 		return
 	}
 
 	userID, ok := userIDValue.(string)
 	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user data type"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID type"})
 		return
 	}
 
@@ -39,16 +39,9 @@ func AddFile(c *gin.Context) {
 		return
 	}
 
-	var user models.User
-	err = config.UserCollection.FindOne(ctx, bson.M{"_id": objID}).Decode(&user)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get user data"})
-		return
-	}
-
 	fileInfoValue, ok := c.Get(middleware.FileContextKey)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "File info not found"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "File info not found in context"})
 		return
 	}
 
@@ -58,7 +51,17 @@ func AddFile(c *gin.Context) {
 		return
 	}
 
-	fileSizeMB := int(fileInfo.Size / (1 << 20))
+	fileSizeMB := int((fileInfo.Size + (1<<20 - 1)) / (1 << 20))
+	if fileSizeMB < 1 {
+		fileSizeMB = 1
+	}
+
+	var user models.User
+	if err := config.UserCollection.FindOne(ctx, bson.M{"_id": objID}).Decode(&user); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get user data: " + err.Error()})
+		return
+	}
+
 	if user.UsedStorage+fileSizeMB > user.StorageLimit {
 		c.JSON(http.StatusForbidden, gin.H{
 			"error":        "Storage limit exceeded",
@@ -71,35 +74,37 @@ func AddFile(c *gin.Context) {
 
 	fileID := primitive.NewObjectID()
 	filePath := fmt.Sprintf("uploads/%s/%s", userID, fileID.Hex())
-
 	if err := os.MkdirAll(filepath.Dir(filePath), 0755); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create directory"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create directory: " + err.Error()})
 		return
 	}
 
 	dst, err := os.Create(filePath)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create file"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create file: " + err.Error()})
 		return
 	}
 	defer dst.Close()
 
 	if _, err := io.Copy(dst, fileInfo.File); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save file"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save file: " + err.Error()})
 		return
 	}
 
-	update := bson.M{
-		"$inc": bson.M{"usedStorage": fileSizeMB},
-	}
-	_, err = config.UserCollection.UpdateOne(
+	updateResult, err := config.UserCollection.UpdateOne(
 		ctx,
 		bson.M{"_id": objID},
-		update,
+		bson.M{"$inc": bson.M{"usedStorage": fileSizeMB}},
 	)
 	if err != nil {
-		os.Remove(filePath) 
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user storage"})
+		os.Remove(filePath)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user storage: " + err.Error()})
+		return
+	}
+
+	if updateResult.ModifiedCount == 0 {
+		os.Remove(filePath)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "User storage not updated"})
 		return
 	}
 
@@ -115,13 +120,18 @@ func AddFile(c *gin.Context) {
 
 	if _, err := config.FilesCollection.InsertOne(ctx, newFile); err != nil {
 		config.UserCollection.UpdateOne(
-			ctx,
+			context.Background(),
 			bson.M{"_id": objID},
 			bson.M{"$inc": bson.M{"usedStorage": -fileSizeMB}},
 		)
 		os.Remove(filePath)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save file metadata"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save file metadata: " + err.Error()})
 		return
+	}
+
+	var updatedUser models.User
+	if err := config.UserCollection.FindOne(ctx, bson.M{"_id": objID}).Decode(&updatedUser); err == nil {
+		user.UsedStorage = updatedUser.UsedStorage
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -130,7 +140,7 @@ func AddFile(c *gin.Context) {
 		"name":         fileInfo.Filename,
 		"size":         fileInfo.Size,
 		"type":         fileInfo.MimeType,
-		"usedStorage":  user.UsedStorage + fileSizeMB,
+		"usedStorage":  user.UsedStorage,
 		"storageLimit": user.StorageLimit,
 	})
 }
