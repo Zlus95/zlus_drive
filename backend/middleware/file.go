@@ -34,6 +34,16 @@ var forbidden = map[string]bool{
 	".html": true,
 }
 
+type FileInfo struct {
+	File     multipart.File
+	Header   *multipart.FileHeader
+	MimeType string
+	Size     int64
+	Filename string
+}
+
+const FileContextKey = "fileInfo"
+
 func FileMiddlware(c *gin.Context) {
 	file, header, err := c.Request.FormFile("file")
 	if err != nil {
@@ -62,6 +72,16 @@ func FileMiddlware(c *gin.Context) {
 		c.AbortWithStatusJSON(400, gin.H{"error": "File type not allowed"})
 		return
 	}
+
+	fileInfo := FileInfo{
+		File:     file,
+		Header:   header,
+		MimeType: mimeType,
+		Size:     header.Size,
+		Filename: header.Filename,
+	}
+
+	c.Set(FileContextKey, fileInfo)
 
 	c.Next()
 

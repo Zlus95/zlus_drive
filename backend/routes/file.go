@@ -11,6 +11,7 @@ func FileRoutes(r *gin.Engine) {
 	r.Use(middleware.TokenMiddlware())
 
 	r.POST("/upload",
+		middleware.FileMiddlware,
 		handlers.AddFile,
 	)
 
