@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -51,7 +52,7 @@ func AddFile(c *gin.Context) {
 		return
 	}
 
-	fileSizeMB := int((fileInfo.Size + (1<<20 - 1)) / (1 << 20))
+	fileSizeMB := int64((fileInfo.Size + (1<<20 - 1)) / (1 << 20))
 	if fileSizeMB < 1 {
 		fileSizeMB = 1
 	}
@@ -144,44 +145,56 @@ func AddFile(c *gin.Context) {
 		"storageLimit": user.StorageLimit,
 	})
 }
-// доделать логику обновления usedStorage && удаления с диска
+
 func DeleteFile(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
-
 	defer cancel()
 
 	userIDValue, ok := c.Get(middleware.UserIDKey)
-
 	if !ok {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "User ID not found in context"})
 		return
 	}
 
 	userID, ok := userIDValue.(string)
-
 	if !ok {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID type"})
 		return
 	}
 
 	objID, err := primitive.ObjectIDFromHex(userID)
-
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID format"})
 		return
 	}
 
-	vars := c.Param("id")
-
-	fileID, err := primitive.ObjectIDFromHex(vars)
-
+	fileID, err := primitive.ObjectIDFromHex(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid file ID format"})
 		return
 	}
 
-	result, err := config.FilesCollection.DeleteOne(ctx, bson.M{"_id": fileID, "ownerId": objID})
+	var file models.File
+	if err := config.FilesCollection.FindOne(
+		ctx,
+		bson.M{"_id": fileID, "ownerId": objID},
+	).Decode(&file); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get file: " + err.Error()})
+		return
+	}
 
+	var user models.User
+	if err := config.UserCollection.FindOne(ctx, bson.M{"_id": objID}).Decode(&user); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get user data: " + err.Error()})
+		return
+	}
+
+	newUsedStorage := user.UsedStorage - file.Size
+	if newUsedStorage < 0 {
+		newUsedStorage = 0
+	}
+
+	result, err := config.FilesCollection.DeleteOne(ctx, bson.M{"_id": fileID, "ownerId": objID})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete file"})
 		return
@@ -190,6 +203,19 @@ func DeleteFile(c *gin.Context) {
 	if result.DeletedCount == 0 {
 		c.JSON(http.StatusNotFound, gin.H{"error": "File not found"})
 		return
+	}
+
+	if _, err := config.UserCollection.UpdateOne(
+		ctx,
+		bson.M{"_id": objID},
+		bson.M{"$set": bson.M{"usedStorage": newUsedStorage}},
+	); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user storage: " + err.Error()})
+		return
+	}
+
+	if err := os.Remove(file.Path); err != nil && !os.IsNotExist(err) {
+		log.Printf("Failed to delete file from disk: %v (path: %s)", err, file.Path)
 	}
 
 	c.JSON(http.StatusOK, gin.H{

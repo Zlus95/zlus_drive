@@ -8,6 +8,6 @@ type User struct {
 	Password     string             `json:"password" bson:"password"`
 	Name         string             `json:"name" bson:"name"`
 	LastName     string             `json:"lastName" bson:"lastName"`
-	StorageLimit int                `json:"storageLimit" bson:"storageLimit"`
-	UsedStorage  int                `json:"usedStorage" bson:"usedStorage"`
+	StorageLimit int64              `json:"storageLimit" bson:"storageLimit"`
+	UsedStorage  int64              `json:"usedStorage" bson:"usedStorage"`
 }
