@@ -22,6 +22,7 @@ func main() {
 
 	r.Use(middleware.DevelopmentCORS())
 	routes.AuthRoutes(r)
+	routes.FileRoutes(r)
 
 	log.Println("Server starting on :8080")
 	if err := r.Run(":8080"); err != nil {
