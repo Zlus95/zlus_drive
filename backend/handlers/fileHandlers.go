@@ -214,7 +214,9 @@ func DeleteFile(c *gin.Context) {
 		return
 	}
 
-	if err := os.Remove(file.Path); err != nil && !os.IsNotExist(err) {
+	filePath := fmt.Sprintf("uploads/%s/%s", userID, fileID.Hex())
+
+	if err := os.Remove(filePath); err != nil && !os.IsNotExist(err) {
 		log.Printf("Failed to delete file from disk: %v (path: %s)", err, file.Path)
 	}
 
