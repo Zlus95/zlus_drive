@@ -144,3 +144,55 @@ func AddFile(c *gin.Context) {
 		"storageLimit": user.StorageLimit,
 	})
 }
+// доделать логику обновления usedStorage && удаления с диска
+func DeleteFile(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
+
+	defer cancel()
+
+	userIDValue, ok := c.Get(middleware.UserIDKey)
+
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "User ID not found in context"})
+		return
+	}
+
+	userID, ok := userIDValue.(string)
+
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID type"})
+		return
+	}
+
+	objID, err := primitive.ObjectIDFromHex(userID)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID format"})
+		return
+	}
+
+	vars := c.Param("id")
+
+	fileID, err := primitive.ObjectIDFromHex(vars)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid file ID format"})
+		return
+	}
+
+	result, err := config.FilesCollection.DeleteOne(ctx, bson.M{"_id": fileID, "ownerId": objID})
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete file"})
+		return
+	}
+
+	if result.DeletedCount == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "File not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "File deleted successfully",
+	})
+}

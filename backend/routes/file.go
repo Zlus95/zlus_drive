@@ -14,5 +14,6 @@ func FileRoutes(r *gin.Engine) {
 		middleware.FileMiddlware,
 		handlers.AddFile,
 	)
+	r.DELETE("/file/:id", handlers.DeleteFile)
 
 }
