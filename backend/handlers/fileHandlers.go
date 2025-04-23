@@ -224,3 +224,48 @@ func DeleteFile(c *gin.Context) {
 		"message": "File deleted successfully",
 	})
 }
+
+func GetAllFiles(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
+	defer cancel()
+
+	userIDValue, ok := c.Get(middleware.UserIDKey)
+
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "User ID not found in context"})
+		return
+	}
+
+	userID, ok := userIDValue.(string)
+
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID type"})
+		return
+	}
+
+	objID, err := primitive.ObjectIDFromHex(userID)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID format"})
+		return
+	}
+
+	cursor, err := config.FilesCollection.Find(ctx, bson.M{"ownerId": objID})
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to fetch files"})
+		return
+	}
+	defer cursor.Close(ctx)
+
+	var files []models.File
+
+	if err = cursor.All(ctx, &files); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode files"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": files,
+	})
+}

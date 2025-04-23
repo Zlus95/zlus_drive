@@ -16,4 +16,6 @@ func FileRoutes(r *gin.Engine) {
 	)
 	r.DELETE("/file/:id", handlers.DeleteFile)
 
+	r.GET("/files", handlers.GetAllFiles)
+
 }
