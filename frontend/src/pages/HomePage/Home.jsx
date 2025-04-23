@@ -34,7 +34,7 @@ const Home = ({ data }) => {
   );
 
   return (
-    <>
+    <div className="h-full overflow-auto">
       <Header />
       <div className="px-2 space-y-4">
         {files.map((item) => (
@@ -78,7 +78,7 @@ const Home = ({ data }) => {
           </div>
         ))}
       </div>
-    </>
+    </div>
   );
 };
 
