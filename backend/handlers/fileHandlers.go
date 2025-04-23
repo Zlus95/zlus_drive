@@ -131,11 +131,6 @@ func AddFile(c *gin.Context) {
 		return
 	}
 
-	var updatedUser models.User
-	if err := config.UserCollection.FindOne(ctx, bson.M{"_id": objID}).Decode(&updatedUser); err == nil {
-		user.UsedStorage = updatedUser.UsedStorage
-	}
-
 	c.JSON(http.StatusOK, gin.H{
 		"message": "File uploaded successfully",
 	})
