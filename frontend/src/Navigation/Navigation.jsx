@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Auth from "../pages/Auth/Auth";
 import Registration from "../pages/Auth/Registration";
-import Home from "../pages/Home/Home";
+import HomePage from "../pages/HomePage/HomePage";
 
 const ProtectedRoute = ({ children }) => {
   const navigate = useNavigate();
@@ -15,11 +15,7 @@ const ProtectedRoute = ({ children }) => {
     }
   }, [token, navigate]);
 
-  return (
-    <div className="h-screen w-full">
-      {children}
-    </div>
-  );
+  return <div className="h-screen w-full">{children}</div>;
 };
 
 const Navigation = () => {
@@ -32,7 +28,7 @@ const Navigation = () => {
           path="/"
           element={
             <ProtectedRoute>
-              <Home />
+              <HomePage />
             </ProtectedRoute>
           }
         />
