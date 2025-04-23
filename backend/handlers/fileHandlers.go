@@ -16,6 +16,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func AddFile(c *gin.Context) {
@@ -136,13 +137,7 @@ func AddFile(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message":      "File uploaded successfully",
-		"fileId":       fileID.Hex(),
-		"name":         fileInfo.Filename,
-		"size":         fileInfo.Size,
-		"type":         fileInfo.MimeType,
-		"usedStorage":  user.UsedStorage,
-		"storageLimit": user.StorageLimit,
+		"message": "File uploaded successfully",
 	})
 }
 
@@ -155,13 +150,11 @@ func DeleteFile(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "User ID not found in context"})
 		return
 	}
-
 	userID, ok := userIDValue.(string)
 	if !ok {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID type"})
 		return
 	}
-
 	objID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID format"})
@@ -179,45 +172,36 @@ func DeleteFile(c *gin.Context) {
 		ctx,
 		bson.M{"_id": fileID, "ownerId": objID},
 	).Decode(&file); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get file: " + err.Error()})
+		if err == mongo.ErrNoDocuments {
+			c.JSON(http.StatusNotFound, gin.H{"error": "File not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get file: " + err.Error()})
+		}
 		return
 	}
 
-	var user models.User
-	if err := config.UserCollection.FindOne(ctx, bson.M{"_id": objID}).Decode(&user); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get user data: " + err.Error()})
-		return
+	fileSizeMB := int64((file.Size + (1<<20 - 1)) / (1 << 20))
+	if fileSizeMB < 1 {
+		fileSizeMB = 1
 	}
 
-	newUsedStorage := user.UsedStorage - file.Size
-	if newUsedStorage < 0 {
-		newUsedStorage = 0
-	}
-
-	result, err := config.FilesCollection.DeleteOne(ctx, bson.M{"_id": fileID, "ownerId": objID})
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete file"})
-		return
-	}
-
-	if result.DeletedCount == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"error": "File not found"})
+	if _, err := config.FilesCollection.DeleteOne(ctx, bson.M{"_id": fileID, "ownerId": objID}); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete file: " + err.Error()})
 		return
 	}
 
 	if _, err := config.UserCollection.UpdateOne(
 		ctx,
 		bson.M{"_id": objID},
-		bson.M{"$set": bson.M{"usedStorage": newUsedStorage}},
+		bson.M{"$inc": bson.M{"usedStorage": -fileSizeMB}},
 	); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user storage: " + err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update storage: " + err.Error()})
 		return
 	}
 
 	filePath := fmt.Sprintf("uploads/%s/%s", userID, fileID.Hex())
-
 	if err := os.Remove(filePath); err != nil && !os.IsNotExist(err) {
-		log.Printf("Failed to delete file from disk: %v (path: %s)", err, file.Path)
+		log.Printf("Failed to delete file from disk: %v", err)
 	}
 
 	c.JSON(http.StatusOK, gin.H{
