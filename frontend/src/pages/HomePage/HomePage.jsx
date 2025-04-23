@@ -1,8 +1,8 @@
 import React from "react";
-import Header from "../../ui-kit/Header";
 import api from "../../api";
 import { useQuery } from "@tanstack/react-query";
 import Loader from "../../ui-kit/Loader/Loader";
+import ErrorText from "../../ui-kit/ErrorText/ErrorText";
 
 function useGetFiles() {
   return useQuery({
@@ -24,6 +24,10 @@ const Home = () => {
         <Loader text="Loading..." />
       </div>
     );
+  }
+
+  if (isError) {
+    return <ErrorText error={error} />;
   }
 };
 
