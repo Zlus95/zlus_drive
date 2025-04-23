@@ -1,9 +1,37 @@
+import React, { useCallback } from "react";
 import Header from "../../ui-kit/Header/Header";
 import Button from "../../ui-kit/Button/Button";
 import { formatStorage } from "../../ui-kit/Header/Header";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useDialog } from "../../providers/DialogProvider";
+import api from "../../api";
+
+async function deleteFile(id) {
+  const { data } = await api.delete(`/file/${id}`);
+  return data;
+}
 
 const Home = ({ data }) => {
   const { data: files } = data;
+  const queryClient = useQueryClient();
+  const { showDialog, DIALOGS } = useDialog();
+
+  const mutationDelete = useMutation({
+    mutationFn: ({ id }) => deleteFile(id),
+    onSuccess: () => queryClient.invalidateQueries(["filesList"]),
+  });
+
+  const deleteCallBack = useCallback(
+    async (id) => {
+      try {
+        await mutationDelete.mutateAsync({ id });
+      } catch (error) {
+        console.error("error", error);
+        alert("Failed to delete file Please try again");
+      }
+    },
+    [mutationDelete]
+  );
 
   return (
     <>
@@ -33,7 +61,19 @@ const Home = ({ data }) => {
             </div>
 
             <div className="flex-shrink-0">
-              <Button variant="error">Delete</Button>
+              <Button
+                variant="error"
+                onClick={() =>
+                  showDialog(DIALOGS.CONFIRMATION, {
+                    text: `Are you sure you want to delete the file ${item.Name}?`,
+                    title: "Delete file",
+                    submitButton: "delete",
+                    onClick: () => deleteCallBack(item.ID),
+                  })
+                }
+              >
+                Delete
+              </Button>
             </div>
           </div>
         ))}
