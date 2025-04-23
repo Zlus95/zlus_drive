@@ -2,6 +2,7 @@ import React from "react";
 import Header from "../../ui-kit/Header";
 import api from "../../api";
 import { useQuery } from "@tanstack/react-query";
+import Loader from "../../ui-kit/Loader/Loader";
 
 function useGetFiles() {
   return useQuery({
@@ -17,11 +18,13 @@ function useGetFiles() {
 const Home = () => {
   const { isLoading, data, error, isError, isSuccess } = useGetFiles();
 
-  return (
-    <div>
-      <Header />
-    </div>
-  );
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <Loader text="Loading..." />
+      </div>
+    );
+  }
 };
 
 export default Home;
