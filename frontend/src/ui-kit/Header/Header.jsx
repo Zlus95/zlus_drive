@@ -2,9 +2,9 @@ import React, { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
-import { useDialog } from "../providers/DialogProvider";
-import api from "../api";
-import Button from "./Button/Button";
+import { useDialog } from "../../providers/DialogProvider";
+import api from "../../api";
+import Button from "../Button/Button";
 
 function useGetUser() {
   return useQuery({

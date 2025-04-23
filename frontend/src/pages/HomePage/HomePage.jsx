@@ -3,6 +3,7 @@ import api from "../../api";
 import { useQuery } from "@tanstack/react-query";
 import Loader from "../../ui-kit/Loader/Loader";
 import ErrorText from "../../ui-kit/ErrorText/ErrorText";
+import Home from "./Home";
 
 function useGetFiles() {
   return useQuery({
@@ -15,7 +16,7 @@ function useGetFiles() {
   });
 }
 
-const Home = () => {
+const HomePage = () => {
   const { isLoading, data, error, isError, isSuccess } = useGetFiles();
 
   if (isLoading) {
@@ -29,6 +30,10 @@ const Home = () => {
   if (isError) {
     return <ErrorText error={error} />;
   }
+
+  if (isSuccess && !isLoading) {
+    return <Home data={data} />;
+  }
 };
 
-export default Home;
+export default HomePage;
