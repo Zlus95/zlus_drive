@@ -1,11 +1,21 @@
 import Header from "../../ui-kit/Header/Header";
 
 const Home = ({ data }) => {
-  console.log(data);
+  const { data: files } = data;
 
   return (
     <>
       <Header />
+      <div>
+        {files.map((item) => (
+          <div key={item.ID}>
+            <img
+              src={`${process.env.REACT_APP_API_URL}/${item.Path}`}
+              alt={item.Name}
+            />
+          </div>
+        ))}
+      </div>
     </>
   );
 };

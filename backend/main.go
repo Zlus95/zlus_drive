@@ -19,7 +19,7 @@ func main() {
 	config.InitCollections(config.DB)
 
 	r := gin.Default()
-
+	r.Static("/uploads", "./uploads")
 	r.Use(middleware.DevelopmentCORS())
 	routes.AuthRoutes(r)
 	routes.FileRoutes(r)
