@@ -265,6 +265,10 @@ func GetAllFiles(c *gin.Context) {
 		return
 	}
 
+	if files == nil {
+		files = []models.File{}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"data": files,
 	})
