@@ -25,10 +25,6 @@ export const formatStorage = (bytes) => {
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
 };
 
-const formatStorageUsage = (used, total) => {
-  return `${formatStorage(used)} / ${formatStorage(total)}`;
-};
-
 const Header = () => {
   const { isLoading, data } = useGetUser();
   const { showDialog, DIALOGS } = useDialog();
@@ -40,6 +36,10 @@ const Header = () => {
     queryClient.clear();
     navigate("/login");
   }, [navigate, queryClient]);
+
+  const formatStorageUsage = (used, total) => {
+    return `${formatStorage(used)} / ${formatStorage(total)}`;
+  };
 
   if (isLoading || !data) {
     return (
@@ -58,9 +58,9 @@ const Header = () => {
   );
 
   return (
-    <header className="bg-gray-800 text-white shadow-md">
-      <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center space-x-2">
+    <header className="bg-gray-800 text-white">
+      <div className="flex justify-between px-4 py-3 ">
+        <div className="flex gap-2">
           <svg
             className="w-8 h-8 text-blue-400"
             fill="none"
@@ -77,54 +77,46 @@ const Header = () => {
           </svg>
           <span className="text-xl font-bold">CloudDrive</span>
         </div>
-
-        <div className="flex items-center space-x-6">
-          <div className="flex flex-col items-end">
-            <div className="text-sm mb-1">
-              {formatStorageUsage(data.usedStorage, data.storageLimit)}
+        <div className="flex flex-col items-center">
+          <div className="text-sm mb-1">
+            {formatStorageUsage(data.usedStorage, data.storageLimit)}
+          </div>
+          <div className="w-48 bg-gray-700 rounded-full h-2">
+            <div
+              className={`h-2 rounded-full ${
+                storagePercentage > 90 ? "bg-red-500" : "bg-blue-500"
+              }`}
+              style={{ width: `${storagePercentage}%` }}
+            ></div>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <div className="flex items-center gap-2">
+            <div className="text-sm font-medium capitalize">
+              {data.name} {data.lastName}
             </div>
-            <div className="w-48 bg-gray-700 rounded-full h-2">
-              <div
-                className={`h-2 rounded-full ${
-                  storagePercentage > 90 ? "bg-red-500" : "bg-blue-500"
-                }`}
-                style={{ width: `${storagePercentage}%` }}
-              ></div>
+            <div className="text-xs text-gray-400 truncate max-w-[120px]">
+              {data.email}
             </div>
           </div>
-
-          <div className="flex items-center space-x-3">
-            <div className="text-right">
-              <div className="text-sm font-medium capitalize">
-                {data.name} {data.lastName}
-              </div>
-              <div className="text-xs text-gray-400 truncate max-w-[120px]">
-                {data.email}
-              </div>
-            </div>
-
-            <div className="relative">
-              <div className="w-10 h-10 uppercase rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
-                {data.name.charAt(0)}
-                {data.lastName.charAt(0)}
-              </div>
-              {data.usedStorage / data.storageLimit > 0.9 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-gray-800"></span>
-              )}
-            </div>
+          <div className="w-10 h-10 uppercase rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
+            {data.name.charAt(0)}
+            {data.lastName.charAt(0)}
           </div>
-          <Button
-            onClick={() =>
-              showDialog(DIALOGS.CONFIRMATION, {
-                text: "Are you sure you want to log out?",
-                title: "Log out",
-                submitButton: "Log out",
-                onClick: logout,
-              })
-            }
-          >
-            Logout
-          </Button>
+          <div className="flex items-center">
+            <Button
+              onClick={() =>
+                showDialog(DIALOGS.CONFIRMATION, {
+                  text: "Are you sure you want to log out?",
+                  title: "Log out",
+                  submitButton: "Log out",
+                  onClick: logout,
+                })
+              }
+            >
+              Logout
+            </Button>
+          </div>
         </div>
       </div>
     </header>
