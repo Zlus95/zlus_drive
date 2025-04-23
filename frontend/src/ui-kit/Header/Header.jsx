@@ -17,6 +17,18 @@ function useGetUser() {
   });
 }
 
+export const formatStorage = (bytes) => {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024)
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+};
+
+const formatStorageUsage = (used, total) => {
+  return `${formatStorage(used)} / ${formatStorage(total)}`;
+};
+
 const Header = () => {
   const { isLoading, data } = useGetUser();
   const { showDialog, DIALOGS } = useDialog();
@@ -28,18 +40,6 @@ const Header = () => {
     queryClient.clear();
     navigate("/login");
   }, [navigate, queryClient]);
-
-  const formatStorage = (bytes) => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    if (bytes < 1024 * 1024 * 1024)
-      return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-    return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
-  };
-
-  const formatStorageUsage = (used, total) => {
-    return `${formatStorage(used)} / ${formatStorage(total)}`;
-  };
 
   if (isLoading || !data) {
     return (

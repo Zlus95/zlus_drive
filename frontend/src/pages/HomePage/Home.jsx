@@ -1,5 +1,6 @@
 import Header from "../../ui-kit/Header/Header";
 import Button from "../../ui-kit/Button/Button";
+import { formatStorage } from "../../ui-kit/Header/Header";
 
 const Home = ({ data }) => {
   const { data: files } = data;
@@ -27,7 +28,7 @@ const Home = ({ data }) => {
               </p>
               <p className="text-xs text-gray-500">
                 {new Date(item.CreatedAt).toLocaleDateString()} •{" "}
-                {(item.Size / 1024).toFixed(1)} KB
+                {formatStorage(item.Size)}
               </p>
             </div>
 
