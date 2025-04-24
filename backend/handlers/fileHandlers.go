@@ -245,11 +245,25 @@ func GetAllFiles(c *gin.Context) {
 		return
 	}
 
-	if files == nil {
-		files = []models.File{}
+	response := make([]map[string]interface{}, 0, len(files))
+
+	for _, file := range files {
+		result := map[string]interface{}{
+			"id":        file.ID,
+			"name":      file.Name,
+			"size":      file.Size,
+			"type":      file.FileType,
+			"createdAt": file.CreatedAt,
+			"path":      file.Path,
+		}
+		response = append(response, result)
+	}
+
+	if len(response) == 0 {
+		response = []map[string]interface{}{}
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"data": files,
+		"data": response,
 	})
 }
