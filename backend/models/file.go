@@ -15,4 +15,5 @@ type File struct {
 	Path      string              `bson:"path"`
 	MimeType  string              `bson:"mimeType"`
 	CreatedAt time.Time           `bson:"createdAt"`
+	FileType  string              `bson:"fileType"`
 }

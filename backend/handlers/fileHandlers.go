@@ -118,6 +118,7 @@ func AddFile(c *gin.Context) {
 		Path:      filePath,
 		OwnerID:   objID,
 		CreatedAt: time.Now(),
+		FileType:  "file",
 	}
 
 	if _, err := config.FilesCollection.InsertOne(ctx, newFile); err != nil {
