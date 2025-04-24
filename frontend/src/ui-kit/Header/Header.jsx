@@ -6,6 +6,7 @@ import { useDialog } from "../../providers/DialogProvider";
 import api from "../../api";
 import Button from "../Button/Button";
 import Actions from "../Actions/Actions";
+import Upload from "../../pages/HomePage/Upload";
 
 function useGetUser() {
   return useQuery({
@@ -122,7 +123,9 @@ const Header = () => {
           </div>
         </div>
       </header>
-      <Actions />
+      <Actions>
+        <Upload />
+      </Actions>
     </>
   );
 };
