@@ -5,12 +5,11 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 async function uploadFile(file) {
   const formData = new FormData();
-  formData.append("file", file); // Добавляем файл в FormData
+  formData.append("file", file);
 
-  // Важно: передаём formData в запрос
   const { data } = await api.post("/upload", formData, {
     headers: {
-      "Content-Type": "multipart/form-data", // Обязательный заголовок для файлов
+      "Content-Type": "multipart/form-data",
     },
   });
   return data;
@@ -47,10 +46,15 @@ const Upload = () => {
   }, []);
 
   return (
-    <label className="cursor-pointer">
-      <input type="file" ref={fileInputRef} onChange={handleFileChange} />
+    <>
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        className="hidden"
+      />
       <Button onClick={handleClick}>Upload</Button>
-    </label>
+    </>
   );
 };
 
