@@ -45,7 +45,7 @@ const Home = ({ data }) => {
             <div className="flex-shrink-0">
               <img
                 src={`${process.env.REACT_APP_API_URL}/${item.path}`}
-                alt={item.Name}
+                alt={item.name}
                 className="w-10 h-10 object-cover rounded"
               />
             </div>

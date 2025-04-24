@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const maxFileSize = 5 << 20 // fix the size later
+const maxFileSize = 50 << 20
 
 var forbiddenMimeTypes = map[string]bool{
 	"application/x-msdownload":      true,
