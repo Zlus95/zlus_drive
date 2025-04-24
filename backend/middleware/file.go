@@ -32,6 +32,7 @@ var forbidden = map[string]bool{
 	".bat":  true,
 	".com":  true,
 	".html": true,
+	".docx": true,
 }
 
 type FileInfo struct {

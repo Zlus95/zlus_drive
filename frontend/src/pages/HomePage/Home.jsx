@@ -12,10 +12,6 @@ async function deleteFile(id) {
   return data;
 }
 
-// async function showFile(id) {
-//   const { data } = await api.get(`/file/${id}`);
-//   return data;
-// }
 
 const Home = ({ data }) => {
   const { data: files } = data;
@@ -39,21 +35,6 @@ const Home = ({ data }) => {
     [mutationDelete]
   );
 
-  // const mutationShow = useMutation({
-  //   mutationFn: ({ id }) => showFile(id),
-  // });
-
-  // const showCallBack = useCallback(
-  //   async (id) => {
-  //     try {
-  //       await mutationShow.mutateAsync({ id });
-  //     } catch (error) {
-  //       console.error("error", error);
-  //       alert("Failed to show file Please try again");
-  //     }
-  //   },
-  //   [mutationShow]
-  // );
 
   return (
     <div className="h-full overflow-auto">
@@ -64,13 +45,11 @@ const Home = ({ data }) => {
             key={item.id}
             className="flex items-center gap-4 p-3 border-b border-gray-200 hover:bg-primary"
           >
-            <div className="flex-shrink-0">
+            <div
+              className="flex-shrink-0 cursor-pointer"
+              onClick={() => showDialog(DIALOGS.SHOW_FILE, { item })}
+            >
               <FileIcon type={item.mimeType} name={item.name} />
-              {/* <img
-                src={`${process.env.REACT_APP_API_URL}/${item.path}`}
-                alt={item.name}
-                className="w-10 h-10 object-cover rounded"
-              /> */}
             </div>
 
             <div className="flex-1 min-w-0">

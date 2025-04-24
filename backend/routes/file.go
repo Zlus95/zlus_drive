@@ -18,6 +18,4 @@ func FileRoutes(r *gin.Engine) {
 
 	r.GET("/files", handlers.GetAllFiles)
 
-	r.GET("/file/:id", handlers.ShowFile)
-
 }
