@@ -255,6 +255,7 @@ func GetAllFiles(c *gin.Context) {
 			"type":      file.FileType,
 			"createdAt": file.CreatedAt,
 			"path":      file.Path,
+			"mimeType":  file.MimeType,
 		}
 		response = append(response, result)
 	}
