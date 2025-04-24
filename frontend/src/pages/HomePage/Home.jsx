@@ -11,6 +11,11 @@ async function deleteFile(id) {
   return data;
 }
 
+async function showFile(id) {
+  const { data } = await api.get(`/file/${id}`);
+  return data;
+}
+
 const Home = ({ data }) => {
   const { data: files } = data;
   const queryClient = useQueryClient();
@@ -32,6 +37,23 @@ const Home = ({ data }) => {
     },
     [mutationDelete]
   );
+
+    const mutationShow = useMutation({
+      mutationFn: ({ id }) => showFile(id),
+    });
+
+    const showCallBack = useCallback(
+      async (id) => {
+        try {
+          await mutationShow.mutateAsync({ id });
+        } catch (error) {
+          console.error("error", error);
+          alert("Failed to show file Please try again");
+        }
+      },
+      [mutationShow]
+    );
+
 
   return (
     <div className="h-full overflow-auto">
