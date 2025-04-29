@@ -5,6 +5,7 @@ import (
 	"backend/middleware"
 	"backend/models"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -267,4 +268,57 @@ func GetAllFiles(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"data": response,
 	})
+}
+
+func CreateFolder(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
+	defer cancel()
+
+	userIDValue, ok := c.Get(middleware.UserIDKey)
+
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "User ID not found in context"})
+		return
+	}
+
+	userID, ok := userIDValue.(string)
+
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID type"})
+		return
+	}
+
+	_, err := primitive.ObjectIDFromHex(userID)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID format"})
+		return
+	}
+
+	folderValue, ok := c.Get(middleware.FileContextKey)
+
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "File info not found in context"})
+		return
+	}
+
+	folder, ok := folderValue.(models.File)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid folder data type"})
+		return
+	}
+
+	_, err = config.FilesCollection.InsertOne(ctx, folder)
+	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			c.JSON(http.StatusGatewayTimeout, gin.H{"error": "Database request timed out"})
+		} else if mongo.IsDuplicateKeyError(err) {
+			c.JSON(http.StatusConflict, gin.H{"error": "Folder with this name already exists"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create folder"})
+		}
+		return
+	}
+
+	c.JSON(http.StatusCreated, folder)
 }
