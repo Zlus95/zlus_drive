@@ -18,6 +18,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func AddFile(c *gin.Context) {
@@ -231,7 +232,11 @@ func GetAllFiles(c *gin.Context) {
 		return
 	}
 
-	cursor, err := config.FilesCollection.Find(ctx, bson.M{"ownerId": objID})
+	opts := options.Find().SetSort(bson.D{
+		{Key: "isFolder", Value: -1},
+		{Key: "name", Value: 1},
+	})
+	cursor, err := config.FilesCollection.Find(ctx, bson.M{"ownerId": objID}, opts)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to fetch files"})
