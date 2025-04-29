@@ -6,12 +6,12 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDialog } from "../../providers/DialogProvider";
 import api from "../../api";
 import FileIcon from "./FileIcon";
+import FolderIcon from "./FolderIcon";
 
 async function deleteFile(id) {
   const { data } = await api.delete(`/file/${id}`);
   return data;
 }
-
 
 const Home = ({ data }) => {
   const { data: files } = data;
@@ -35,7 +35,6 @@ const Home = ({ data }) => {
     [mutationDelete]
   );
 
-
   return (
     <div className="h-full overflow-auto">
       <Header />
@@ -49,7 +48,11 @@ const Home = ({ data }) => {
               className="flex-shrink-0 cursor-pointer"
               onClick={() => showDialog(DIALOGS.SHOW_FILE, { item })}
             >
-              <FileIcon type={item.mimeType} name={item.name} />
+              {item.type === "file" ? (
+                <FileIcon type={item.mimeType} name={item.name} />
+              ) : (
+                <FolderIcon />
+              )}
             </div>
 
             <div className="flex-1 min-w-0">
@@ -57,8 +60,8 @@ const Home = ({ data }) => {
                 {item.name}
               </p>
               <p className="text-xs text-gray-500">
-                {new Date(item.createdAt).toLocaleDateString()} •{" "}
-                {formatStorage(item.size)}
+                {new Date(item.createdAt).toLocaleDateString()}{" "}
+                {item.type === "file" && formatStorage(item.size)}
               </p>
             </div>
 
