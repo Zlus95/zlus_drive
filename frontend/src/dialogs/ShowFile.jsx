@@ -1,7 +1,6 @@
 import React, { memo } from "react";
 
 const ShowFile = ({ onClose, item }) => {
-  console.log(item);
   return (
     <div className="fixed inset-0 z-50 bg-black bg-opacity-90">
       <div className="h-full flex flex-col">

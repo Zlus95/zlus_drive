@@ -16,4 +16,5 @@ type File struct {
 	MimeType  string              `bson:"mimeType"`
 	CreatedAt time.Time           `bson:"createdAt"`
 	FileType  string              `bson:"fileType"`
+	IsFolder  bool                `bson:"isFolder"`
 }

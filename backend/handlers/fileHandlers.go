@@ -252,12 +252,19 @@ func GetAllFiles(c *gin.Context) {
 		result := map[string]interface{}{
 			"id":        file.ID,
 			"name":      file.Name,
-			"size":      file.Size,
-			"type":      file.FileType,
 			"createdAt": file.CreatedAt,
-			"path":      file.Path,
-			"mimeType":  file.MimeType,
 		}
+
+		if file.IsFolder {
+			result["type"] = "folder"
+			result["size"] = nil
+			result["mimeType"] = nil
+		} else {
+			result["type"] = file.FileType
+			result["size"] = file.Size
+			result["mimeType"] = file.MimeType
+		}
+
 		response = append(response, result)
 	}
 
@@ -288,7 +295,7 @@ func CreateFolder(c *gin.Context) {
 		return
 	}
 
-	_, err := primitive.ObjectIDFromHex(userID)
+	objID, err := primitive.ObjectIDFromHex(userID)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID format"})
@@ -308,6 +315,11 @@ func CreateFolder(c *gin.Context) {
 		return
 	}
 
+	folder.IsFolder = true
+	folder.OwnerID = objID
+	folder.CreatedAt = time.Now()
+	folder.ID = primitive.NewObjectID()
+
 	_, err = config.FilesCollection.InsertOne(ctx, folder)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
@@ -320,5 +332,14 @@ func CreateFolder(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, folder)
+	response := map[string]interface{}{
+		"id":        folder.ID,
+		"createdAt": folder.CreatedAt,
+		"mimeType":  nil,
+		"path":      nil,
+		"type":      "folder",
+		"name":      folder.Name,
+	}
+
+	c.JSON(http.StatusCreated, response)
 }
