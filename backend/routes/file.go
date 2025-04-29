@@ -18,4 +18,9 @@ func FileRoutes(r *gin.Engine) {
 
 	r.GET("/files", handlers.GetAllFiles)
 
+	r.POST("/folder",
+		middleware.FolderMiddlware(),
+		handlers.CreateFolder,
+	)
+
 }

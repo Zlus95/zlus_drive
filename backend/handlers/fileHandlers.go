@@ -295,10 +295,10 @@ func CreateFolder(c *gin.Context) {
 		return
 	}
 
-	folderValue, ok := c.Get(middleware.FileContextKey)
+	folderValue, ok := c.Get(middleware.FolderContextKey)
 
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "File info not found in context"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Folder info not found in context"})
 		return
 	}
 
