@@ -1,9 +1,43 @@
-import React, { memo } from "react";
+import React, { memo, useRef, useCallback } from "react";
 import Button from "../ui-kit/Button/Button";
+import api from "../api";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
+async function createFolder(name) {
+  const { data } = await api.post("/folder", name);
+  return data;
+}
 
 const CreateFolder = ({ onClose }) => {
+  const queryClient = useQueryClient();
+  const nameRef = useRef(null);
+
+  const mutationCreate = useMutation({
+    mutationFn: ({ name }) => createFolder(name),
+    onSuccess: () => queryClient.invalidateQueries(["filesList"]),
+  });
+
+  const createCallBack = useCallback(
+    async (name) => {
+      try {
+        await mutationCreate.mutateAsync({ name });
+      } catch (error) {
+        console.error("error", error);
+        alert("Failed to create Folder. Please try again");
+      }
+    },
+    [mutationCreate]
+  );
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const name = nameRef.current.value;
+    createCallBack({ name });
+    onClose();
+  };
+
   return (
-    <form className="Dialog">
+    <form className="Dialog" onSubmit={handleSubmit}>
       <div className="bgDialog">
         <div className="titleContainer">
           <h2 className="titleDialog">Create Folder</h2>
@@ -18,15 +52,9 @@ const CreateFolder = ({ onClose }) => {
         </div>
         <div className="textDialog">
           <div className="mb-4">
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Room Password
-            </label>
             <input
               type="text"
-              //   ref={passwordRef}
+              ref={nameRef}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="Enter Name"
               autoComplete="current-password"
