@@ -1,17 +1,20 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
 import Confirmation from "../dialogs/Confirmation";
 import ShowFile from "../dialogs/ShowFile";
+import CreateFolder from "../dialogs/CreateFolder";
 
 const Context = createContext();
 
 export const DIALOGS = {
   CONFIRMATION: "CONFIRMATION",
   SHOW_FILE: "SHOW_FILE",
+  CREATE_FOLDER: "CREATE_FOLDER",
 };
 
 const COMPONENTS = {
   CONFIRMATION: Confirmation,
   SHOW_FILE: ShowFile,
+  CREATE_FOLDER: CreateFolder,
 };
 
 export const DialogProvider = ({ children }) => {
