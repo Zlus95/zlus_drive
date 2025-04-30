@@ -8,6 +8,7 @@ import Button from "../Button/Button";
 import Actions from "../Actions/Actions";
 import Upload from "../../pages/HomePage/Upload";
 import Folder from "../../pages/HomePage/Folder";
+import SortButton from "../../pages/HomePage/SortButton";
 
 function useGetUser() {
   return useQuery({
@@ -125,9 +126,7 @@ const Header = ({ onChangeSort, sort }) => {
         </div>
       </header>
       <Actions>
-        <button onClick={onChangeSort}>
-          {sort ? "Папки → Файлы" : "Файлы → Папки"}
-        </button>
+        <SortButton sort={sort} onChangeSort={onChangeSort} />
         <Upload />
         <Folder />
       </Actions>
