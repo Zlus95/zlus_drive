@@ -234,8 +234,15 @@ func GetAllFiles(c *gin.Context) {
 		return
 	}
 
+	sortByFolders := c.DefaultQuery("sort", "true") == "true"
+	sortDirection := -1
+
+	if !sortByFolders {
+		sortDirection = 1
+	}
+
 	opts := options.Find().SetSort(bson.D{
-		{Key: "isFolder", Value: -1},
+		{Key: "isFolder", Value: sortDirection},
 		{Key: "name", Value: 1},
 	})
 	cursor, err := config.FilesCollection.Find(ctx, bson.M{"ownerId": objID}, opts)
