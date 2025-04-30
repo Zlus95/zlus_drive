@@ -1,23 +1,32 @@
-import React from "react";
+import React, { useState } from "react";
 import api from "../../api";
 import { useQuery } from "@tanstack/react-query";
 import Loader from "../../ui-kit/Loader/Loader";
 import ErrorText from "../../ui-kit/ErrorText/ErrorText";
 import Home from "./Home";
 
-function useGetFiles() {
+function useGetFiles(sort) {
   return useQuery({
-    queryKey: ["filesList"],
+    queryKey: ["filesList", sort],
     refetchOnWindowFocus: false,
     queryFn: async () => {
-      const response = await api.get("/files");
+      const response = await api.get("/files", {
+        params: {
+          sort: sort.toString(),
+        },
+      });
       return response.data;
     },
   });
 }
 
 const HomePage = () => {
-  const { isLoading, data, error, isError, isSuccess } = useGetFiles();
+  const [sort, setSort] = useState(true);
+  const { isLoading, data, error, isError, isSuccess } = useGetFiles(sort);
+
+  const toggleSort = () => {
+    setSort((prev) => !prev);
+  };
 
   if (isLoading) {
     return (
@@ -32,7 +41,7 @@ const HomePage = () => {
   }
 
   if (isSuccess && !isLoading) {
-    return <Home data={data} />;
+    return <Home data={data} onChangeSort={toggleSort} sort={sort} />;
   }
 };
 

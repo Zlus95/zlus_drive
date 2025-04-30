@@ -13,7 +13,7 @@ async function deleteFile(id) {
   return data;
 }
 
-const Home = ({ data }) => {
+const Home = ({ data, onChangeSort, sort }) => {
   const { data: files } = data;
   const queryClient = useQueryClient();
   const { showDialog, DIALOGS } = useDialog();
@@ -37,7 +37,7 @@ const Home = ({ data }) => {
 
   return (
     <div className="h-full overflow-auto">
-      <Header />
+      <Header onChangeSort={onChangeSort} sort={sort} />
       <div className="px-2 space-y-4">
         {files.map((item) => (
           <div

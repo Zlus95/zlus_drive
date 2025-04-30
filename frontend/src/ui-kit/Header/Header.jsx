@@ -28,7 +28,7 @@ export const formatStorage = (bytes) => {
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
 };
 
-const Header = () => {
+const Header = ({ onChangeSort, sort }) => {
   const { isLoading, data } = useGetUser();
   const { showDialog, DIALOGS } = useDialog();
   const queryClient = useQueryClient();
@@ -125,6 +125,9 @@ const Header = () => {
         </div>
       </header>
       <Actions>
+        <button onClick={onChangeSort}>
+          {sort ? "Папки → Файлы" : "Файлы → Папки"}
+        </button>
         <Upload />
         <Folder />
       </Actions>
