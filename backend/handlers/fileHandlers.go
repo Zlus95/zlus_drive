@@ -267,6 +267,7 @@ func GetAllFiles(c *gin.Context) {
 			"id":        file.ID,
 			"name":      file.Name,
 			"createdAt": file.CreatedAt,
+			"path":      file.Path,
 		}
 
 		if file.IsFolder {
@@ -277,6 +278,7 @@ func GetAllFiles(c *gin.Context) {
 			result["type"] = file.FileType
 			result["size"] = file.Size
 			result["mimeType"] = file.MimeType
+			result["path"] = file.Path
 		}
 
 		response = append(response, result)
