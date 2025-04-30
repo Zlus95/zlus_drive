@@ -188,18 +188,20 @@ func DeleteFile(c *gin.Context) {
 		return
 	}
 
-	if _, err := config.UserCollection.UpdateOne(
-		ctx,
-		bson.M{"_id": objID},
-		bson.M{"$inc": bson.M{"usedStorage": -fileSizeMB}},
-	); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update storage: " + err.Error()})
-		return
-	}
+	if !file.IsFolder {
+		if _, err := config.UserCollection.UpdateOne(
+			ctx,
+			bson.M{"_id": objID},
+			bson.M{"$inc": bson.M{"usedStorage": -fileSizeMB}},
+		); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update storage: " + err.Error()})
+			return
+		}
 
-	filePath := fmt.Sprintf("uploads/%s/%s", userID, fileID.Hex())
-	if err := os.Remove(filePath); err != nil && !os.IsNotExist(err) {
-		log.Printf("Failed to delete file from disk: %v", err)
+		filePath := fmt.Sprintf("uploads/%s/%s", userID, fileID.Hex())
+		if err := os.Remove(filePath); err != nil && !os.IsNotExist(err) {
+			log.Printf("Failed to delete file from disk: %v", err)
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{
