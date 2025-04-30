@@ -7,6 +7,7 @@ import api from "../../api";
 import Button from "../Button/Button";
 import Actions from "../Actions/Actions";
 import Upload from "../../pages/HomePage/Upload";
+import Folder from "../../pages/HomePage/Folder";
 
 function useGetUser() {
   return useQuery({
@@ -125,6 +126,7 @@ const Header = () => {
       </header>
       <Actions>
         <Upload />
+        <Folder />
       </Actions>
     </>
   );
