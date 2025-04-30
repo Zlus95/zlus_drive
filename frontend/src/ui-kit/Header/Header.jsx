@@ -126,9 +126,14 @@ const Header = ({ onChangeSort, sort }) => {
         </div>
       </header>
       <Actions>
-        <SortButton sort={sort} onChangeSort={onChangeSort} />
-        <Upload />
-        <Folder />
+        <div className="flex-1 flex justify-start">
+          <SortButton sort={sort} onChangeSort={onChangeSort} />
+        </div>
+        <div className="flex gap-2 justify-center">
+          <Upload />
+          <Folder />
+        </div>
+        <div className="flex-1"></div>
       </Actions>
     </>
   );
