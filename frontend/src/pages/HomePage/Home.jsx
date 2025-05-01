@@ -48,10 +48,10 @@ const Home = ({ data, onChangeSort, sort }) => {
               className="flex-shrink-0 cursor-pointer"
               onClick={() => showDialog(DIALOGS.SHOW_FILE, { item })}
             >
-              {item.type === "file" ? (
-                <FileIcon type={item.mimeType} name={item.name} />
-              ) : (
+              {item.isFolder ? (
                 <FolderIcon />
+              ) : (
+                <FileIcon type={item.mimeType} name={item.name} />
               )}
             </div>
 
@@ -61,7 +61,7 @@ const Home = ({ data, onChangeSort, sort }) => {
               </p>
               <p className="text-xs text-gray-500">
                 {new Date(item.createdAt).toLocaleDateString()}{" "}
-                {item.type === "file" && formatStorage(item.size)}
+                {!item.isFolder && formatStorage(item.size)}
               </p>
             </div>
 
