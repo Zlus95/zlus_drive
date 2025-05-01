@@ -268,17 +268,17 @@ func GetAllFiles(c *gin.Context) {
 			"createdAt": file.CreatedAt,
 			"path":      file.Path,
 			"isFolder":  file.IsFolder,
+			"parent":    file.Parent,
 		}
 
 		if file.IsFolder {
-			result["size"] = nil
-			result["mimeType"] = nil
 			result["isFolder"] = true
+			result["parent"] = file.Parent
 		} else {
 			result["size"] = file.Size
 			result["mimeType"] = file.MimeType
 			result["path"] = file.Path
-			result["isFolder"] = false
+			result["parent"] = file.Parent
 		}
 
 		response = append(response, result)
@@ -351,10 +351,7 @@ func CreateFolder(c *gin.Context) {
 	response := map[string]interface{}{
 		"id":        folder.ID,
 		"createdAt": folder.CreatedAt,
-		"mimeType":  nil,
-		"path":      nil,
-		"type":      "folder",
-		"name":      folder.Name,
+		"name": folder.Name,
 	}
 
 	c.JSON(http.StatusCreated, response)
