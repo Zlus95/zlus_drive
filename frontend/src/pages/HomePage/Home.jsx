@@ -5,8 +5,8 @@ import { formatStorage } from "../../ui-kit/Header/Header";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDialog } from "../../providers/DialogProvider";
 import api from "../../api";
-import FileIcon from "./FileIcon";
-import FolderIcon from "./FolderIcon";
+import FileIcon from "../../ui-kit/icons/FileIcon";
+import FolderIcon from "../../ui-kit/icons/FolderIcon";
 
 async function deleteFile(id) {
   const { data } = await api.delete(`/file/${id}`);
