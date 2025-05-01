@@ -1,5 +1,5 @@
 import React, { useCallback, useRef } from "react";
-import Button from "../../ui-kit/Button/Button";
+import Button from "../Button/Button";
 import api from "../../api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 

@@ -6,9 +6,9 @@ import { useDialog } from "../../providers/DialogProvider";
 import api from "../../api";
 import Button from "../Button/Button";
 import Actions from "../Actions/Actions";
-import Upload from "../../pages/HomePage/Upload";
-import Folder from "../../pages/HomePage/Folder";
-import SortButton from "../../pages/HomePage/SortButton";
+import Upload from "../Actions/Upload";
+import Folder from "../Actions/Folder";
+import SortButton from "../Actions/SortButton";
 
 function useGetUser() {
   return useQuery({

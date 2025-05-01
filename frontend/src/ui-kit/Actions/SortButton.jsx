@@ -1,5 +1,5 @@
 import React from "react";
-import Button from "../../ui-kit/Button/Button";
+import Button from "../Button/Button";
 
 const SortButton = ({ sort, onChangeSort }) => (
   <Button onClick={onChangeSort}>
