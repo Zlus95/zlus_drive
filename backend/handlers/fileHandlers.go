@@ -120,7 +120,6 @@ func AddFile(c *gin.Context) {
 		Path:      filePath,
 		OwnerID:   objID,
 		CreatedAt: time.Now(),
-		FileType:  "file",
 	}
 
 	if _, err := config.FilesCollection.InsertOne(ctx, newFile); err != nil {
@@ -272,12 +271,10 @@ func GetAllFiles(c *gin.Context) {
 		}
 
 		if file.IsFolder {
-			result["type"] = "folder"
 			result["size"] = nil
 			result["mimeType"] = nil
 			result["isFolder"] = true
 		} else {
-			result["type"] = file.FileType
 			result["size"] = file.Size
 			result["mimeType"] = file.MimeType
 			result["path"] = file.Path
