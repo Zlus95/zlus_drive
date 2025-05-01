@@ -133,7 +133,7 @@ const Header = ({ onChangeSort, sort }) => {
           <Upload />
           <Folder />
         </div>
-        <div className="flex-1"></div>
+        <div className="flex-1" />
       </Actions>
     </>
   );
