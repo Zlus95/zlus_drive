@@ -25,7 +25,7 @@ const FileItem = ({
     accept: "FILE",
     drop: (draggedItem) => {
       if (item.isFolder && draggedItem.id !== item.id) {
-        onDrop(draggedItem.id, item.id);
+        onDrop(draggedItem, item);
       }
     },
     collect: (monitor) => ({

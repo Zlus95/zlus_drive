@@ -64,10 +64,13 @@ const Home = ({ data, onChangeSort, sort }) => {
     onSuccess: () => queryClient.invalidateQueries(["filesList"]),
   });
 
-  const handleDrop = async (draggedId, targetParentId) => {
+  const handleDrop = async (dragged, targetParent) => {
+    if (!dragged.isFolder && !targetParent.isFolder) return;
+    if (dragged.isFolder && !targetParent.isFolder) return;
+
     await mutationMove.mutateAsync({
-      id: draggedId,
-      parent: targetParentId,
+      id: dragged.id,
+      parent: targetParent.id,
     });
   };
 
