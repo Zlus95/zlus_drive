@@ -23,6 +23,6 @@ func FileRoutes(r *gin.Engine) {
 		handlers.CreateFolder,
 	)
 
-	r.PATCH("/file/:id", handlers.MoveFile)
+	r.PATCH("/file/:id", middleware.UpdateFileMiddlware(), handlers.MoveFile)
 
 }

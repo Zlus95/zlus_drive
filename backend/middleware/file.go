@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"backend/models"
 	"fmt"
 	"mime/multipart"
 	"net/http"
@@ -44,6 +45,7 @@ type FileInfo struct {
 }
 
 const FileContextKey = "fileInfo"
+const UpdateFileContextKey = "updateFile"
 
 func FileMiddlware(c *gin.Context) {
 	file, header, err := c.Request.FormFile("file")
@@ -102,4 +104,20 @@ func detectMimeType(file multipart.File) (string, error) {
 		return "", err
 	}
 	return http.DetectContentType(buffer), nil
+}
+
+func UpdateFileMiddlware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var file models.File
+
+		if err := c.ShouldBindJSON(&file); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"Invalid JSON": err.Error()})
+			c.Abort()
+			return
+		}
+
+		c.Set(UpdateFileContextKey, file)
+
+		c.Next()
+	}
 }

@@ -393,45 +393,50 @@ func MoveFile(c *gin.Context) {
 		return
 	}
 
-	var request struct {
-		NewParentID *primitive.ObjectID `json:"newParentId"`
-	}
-	if err := c.BindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+	fileValue, ok := c.Get(middleware.UpdateFileContextKey)
+
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "File info not found in context"})
 		return
 	}
 
-	var file models.File
+	file, ok := fileValue.(models.File)
 
-	err = config.FilesCollection.FindOne(ctx, bson.M{"_id": targetID, "ownerId": objUserID}).Decode(&file)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid folder data type"})
+		return
+	}
+
+	var existingFile models.File
+	err = config.FilesCollection.FindOne(ctx, bson.M{"_id": targetID, "ownerId": objUserID}).Decode(&existingFile)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "File not found"})
 		return
 	}
 
-	if request.NewParentID != nil && *request.NewParentID == targetID {
+	if file.Parent != nil && file.Parent.Hex() == targetID.Hex() {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot move to itself"})
 		return
 	}
 
-	updateTarget := bson.M{"$set": bson.M{"parent": request.NewParentID}}
+	updateTarget := bson.M{"$set": bson.M{"parent": file.Parent}}
 
 	if _, err := config.FilesCollection.UpdateOne(ctx, bson.M{"_id": targetID}, updateTarget); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update target"})
 		return
 	}
 
-	if file.Parent != nil {
+	if existingFile.Parent != nil {
 		updateOldParent := bson.M{"$pull": bson.M{"children": targetID}}
-		if _, err := config.FilesCollection.UpdateOne(ctx, bson.M{"_id": file.Parent}, updateOldParent); err != nil {
+		if _, err := config.FilesCollection.UpdateOne(ctx, bson.M{"_id": existingFile.Parent}, updateOldParent); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update old parent"})
 			return
 		}
 	}
 
-	if request.NewParentID != nil {
+	if file.Parent != nil {
 		updateNewParent := bson.M{"$addToSet": bson.M{"children": targetID}}
-		if _, err := config.FilesCollection.UpdateOne(ctx, bson.M{"_id": request.NewParentID}, updateNewParent); err != nil {
+		if _, err := config.FilesCollection.UpdateOne(ctx, bson.M{"_id": file.Parent}, updateNewParent); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update new parent"})
 			return
 		}
