@@ -3,12 +3,17 @@ import Header from "../../ui-kit/Header/Header";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDialog } from "../../providers/DialogProvider";
 import api from "../../api";
-import FilesList from "./FilesList";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
+import FilesTree from "./FilesTree";
 
 async function deleteFile(id) {
   const { data } = await api.delete(`/file/${id}`);
+  return data;
+}
+
+async function moveFile(id, parent) {
+  const { data } = await api.patch(`/file/${id}`, { parent });
   return data;
 }
 
@@ -54,16 +59,34 @@ const Home = ({ data, onChangeSort, sort }) => {
     [DIALOGS.CONFIRMATION, showDialog, deleteCallBack]
   );
 
+  const mutationMove = useMutation({
+    mutationFn: ({ id, parent }) => moveFile(id, parent),
+    onSuccess: () => queryClient.invalidateQueries(["filesList"]),
+  });
+
+  const handleDrop = async (draggedId, targetParentId) => {
+    await mutationMove.mutateAsync({
+      id: draggedId,
+      parent: targetParentId,
+    });
+  };
+
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="h-full overflow-auto">
         <Header onChangeSort={onChangeSort} sort={sort} />
         <div className="px-2 space-y-4">
-          <FilesList
+          <FilesTree
             files={files}
             handleShowFile={handleShowFile}
             handleDeleteFile={handleDeleteFile}
+            onDrop={handleDrop}
           />
+          {/* <FilesList
+            files={files}
+            handleShowFile={handleShowFile}
+            handleDeleteFile={handleDeleteFile}
+          /> */}
         </div>
       </div>
     </DndProvider>
