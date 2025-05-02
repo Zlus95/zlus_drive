@@ -1,12 +1,9 @@
 import React, { useCallback } from "react";
 import Header from "../../ui-kit/Header/Header";
-import Button from "../../ui-kit/Button/Button";
-import { formatStorage } from "../../ui-kit/Header/Header";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDialog } from "../../providers/DialogProvider";
 import api from "../../api";
-import FileIcon from "../../ui-kit/icons/FileIcon";
-import FolderIcon from "../../ui-kit/icons/FolderIcon";
+import FilesList from "./FilesList";
 
 async function deleteFile(id) {
   const { data } = await api.delete(`/file/${id}`);
@@ -35,53 +32,35 @@ const Home = ({ data, onChangeSort, sort }) => {
     [mutationDelete]
   );
 
+  const handleShowFile = useCallback(
+    (item) => {
+      return () => showDialog(DIALOGS.SHOW_FILE, { item });
+    },
+    [DIALOGS.SHOW_FILE, showDialog]
+  );
+
+  const handleDeleteFile = useCallback(
+    (item) => {
+      return () =>
+        showDialog(DIALOGS.CONFIRMATION, {
+          text: `Are you sure you want to delete the file ${item.name}?`,
+          title: "Delete file",
+          submitButton: "delete",
+          onClick: () => deleteCallBack(item.id),
+        });
+    },
+    [DIALOGS.CONFIRMATION, showDialog, deleteCallBack]
+  );
+
   return (
     <div className="h-full overflow-auto">
       <Header onChangeSort={onChangeSort} sort={sort} />
       <div className="px-2 space-y-4">
-        {files.map((item) => (
-          <div
-            key={item.id}
-            className="flex items-center gap-4 p-3 border-b border-gray-200 hover:bg-primary"
-          >
-            <div
-              className="flex-shrink-0 cursor-pointer"
-              onClick={() => showDialog(DIALOGS.SHOW_FILE, { item })}
-            >
-              {item.isFolder ? (
-                <FolderIcon />
-              ) : (
-                <FileIcon type={item.mimeType} name={item.name} />
-              )}
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white/50 truncate">
-                {item.name}
-              </p>
-              <p className="text-xs text-gray-500">
-                {new Date(item.createdAt).toLocaleDateString()}{" "}
-                {!item.isFolder && formatStorage(item.size)}
-              </p>
-            </div>
-
-            <div className="flex-shrink-0">
-              <Button
-                variant="error"
-                onClick={() =>
-                  showDialog(DIALOGS.CONFIRMATION, {
-                    text: `Are you sure you want to delete the file ${item.name}?`,
-                    title: "Delete file",
-                    submitButton: "delete",
-                    onClick: () => deleteCallBack(item.id),
-                  })
-                }
-              >
-                Delete
-              </Button>
-            </div>
-          </div>
-        ))}
+        <FilesList
+          files={files}
+          handleShowFile={handleShowFile}
+          handleDeleteFile={handleDeleteFile}
+        />
       </div>
     </div>
   );
