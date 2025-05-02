@@ -4,6 +4,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDialog } from "../../providers/DialogProvider";
 import api from "../../api";
 import FilesList from "./FilesList";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 
 async function deleteFile(id) {
   const { data } = await api.delete(`/file/${id}`);
@@ -53,16 +55,18 @@ const Home = ({ data, onChangeSort, sort }) => {
   );
 
   return (
-    <div className="h-full overflow-auto">
-      <Header onChangeSort={onChangeSort} sort={sort} />
-      <div className="px-2 space-y-4">
-        <FilesList
-          files={files}
-          handleShowFile={handleShowFile}
-          handleDeleteFile={handleDeleteFile}
-        />
+    <DndProvider backend={HTML5Backend}>
+      <div className="h-full overflow-auto">
+        <Header onChangeSort={onChangeSort} sort={sort} />
+        <div className="px-2 space-y-4">
+          <FilesList
+            files={files}
+            handleShowFile={handleShowFile}
+            handleDeleteFile={handleDeleteFile}
+          />
+        </div>
       </div>
-    </div>
+    </DndProvider>
   );
 };
 
