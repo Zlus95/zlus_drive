@@ -36,7 +36,7 @@ const FileItem = ({
   return (
     <div
       ref={(node) => drag(drop(node))}
-      className={`flex items-center gap-4 p-3 border-b border-gray-200 hover:bg-primary 
+      className={`flex items-center gap-4 p-3 border-b border-gray-200 hover:bg-primary cursor-grab
         ${isDragging ? "opacity-50" : ""} 
         ${isOver ? "bg-blue-50" : ""}`}
       style={{ marginLeft: `${depth * 16}px` }}
