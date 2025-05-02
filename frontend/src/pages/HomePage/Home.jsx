@@ -41,7 +41,7 @@ const Home = ({ data, onChangeSort, sort }) => {
 
   const handleShowFile = useCallback(
     (item) => {
-      return () => showDialog(DIALOGS.SHOW_FILE, { item });
+      if (!item.isFolder) return () => showDialog(DIALOGS.SHOW_FILE, { item });
     },
     [DIALOGS.SHOW_FILE, showDialog]
   );
@@ -82,11 +82,6 @@ const Home = ({ data, onChangeSort, sort }) => {
             handleDeleteFile={handleDeleteFile}
             onDrop={handleDrop}
           />
-          {/* <FilesList
-            files={files}
-            handleShowFile={handleShowFile}
-            handleDeleteFile={handleDeleteFile}
-          /> */}
         </div>
       </div>
     </DndProvider>

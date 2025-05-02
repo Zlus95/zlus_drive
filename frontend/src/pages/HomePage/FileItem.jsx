@@ -4,6 +4,7 @@ import Button from "../../ui-kit/Button/Button";
 import FolderIcon from "../../ui-kit/icons/FolderIcon";
 import FileIcon from "../../ui-kit/icons/FileIcon";
 import { formatStorage } from "../../ui-kit/Header/Header";
+import clsx from "clsx";
 
 const FileItem = ({
   item,
@@ -41,7 +42,10 @@ const FileItem = ({
       style={{ marginLeft: `${depth * 16}px` }}
     >
       <div
-        className="flex-shrink-0 cursor-pointer"
+        className={clsx(
+          "flex-shrink-0",
+          item.isFolder ? "cursor-auto" : "cursor-pointer"
+        )}
         onClick={handleShowFile(item)}
       >
         {item.isFolder ? (
