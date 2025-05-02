@@ -1,4 +1,4 @@
-import React, { memo, useRef, useCallback } from "react";
+import React, { memo, useRef, useCallback, useState } from "react";
 import Button from "../ui-kit/Button/Button";
 import api from "../api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -11,6 +11,12 @@ async function createFolder(name) {
 const CreateFolder = ({ onClose }) => {
   const queryClient = useQueryClient();
   const nameRef = useRef(null);
+  const [validForm, setValid] = useState(false);
+
+  const changeInput = () => {
+    const name = nameRef.current.value;
+    setValid(name.length > 1);
+  };
 
   const mutationCreate = useMutation({
     mutationFn: ({ name }) => createFolder(name),
@@ -55,6 +61,7 @@ const CreateFolder = ({ onClose }) => {
             <input
               type="text"
               ref={nameRef}
+              onChange={changeInput}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="Enter Name"
               autoComplete="current-password"
@@ -73,7 +80,7 @@ const CreateFolder = ({ onClose }) => {
           >
             Close
           </Button>
-          <Button type="submit" className="px-4 py-2">
+          <Button type="submit" disabled={!validForm} className="px-4 py-2">
             Create
           </Button>
         </div>
