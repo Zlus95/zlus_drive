@@ -461,7 +461,7 @@ func MoveFile(c *gin.Context) {
 }
 
 func DeleteFolder(c *gin.Context) {
-	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
 	defer cancel()
 
 	userIDValue, ok := c.Get(middleware.UserIDKey)
@@ -489,10 +489,7 @@ func DeleteFolder(c *gin.Context) {
 	}
 
 	var folder models.File
-	if err := config.FilesCollection.FindOne(
-		ctx,
-		bson.M{"_id": folderID, "ownerId": objID},
-	).Decode(&folder); err != nil {
+	if err := config.FilesCollection.FindOne(ctx, bson.M{"_id": folderID, "ownerId": objID}).Decode(&folder); err != nil {
 		if err == mongo.ErrNoDocuments {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Folder not found"})
 		} else {
@@ -506,24 +503,40 @@ func DeleteFolder(c *gin.Context) {
 		return
 	}
 
-	totalSizeReduction, err := deleteFolderRecursive(ctx, folderID, userID)
+	totalSizeReduction, err := deleteFolderRecursive(ctx, folderID, userID, folder)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete folder contents: " + err.Error()})
 		return
 	}
 
-	if _, err := config.FilesCollection.DeleteOne(ctx, bson.M{"_id": folderID, "ownerId": objID}); err != nil {
+	if result, err := config.FilesCollection.DeleteOne(ctx, bson.M{"_id": folderID, "ownerId": objID}); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete folder: " + err.Error()})
+		return
+	} else if result.DeletedCount == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Folder not found for deletion"})
 		return
 	}
 
+	if folder.Parent != nil {
+		updateParent := bson.M{"$pull": bson.M{"children": folderID}}
+		if result, err := config.FilesCollection.UpdateOne(ctx, bson.M{"_id": *folder.Parent}, updateParent); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update parent: " + err.Error()})
+			return
+		} else if result.MatchedCount == 0 {
+			log.Printf("Parent %s not found for update, possibly already deleted", folder.Parent.Hex())
+		}
+	}
+
 	if totalSizeReduction > 0 {
-		if _, err := config.UserCollection.UpdateOne(
+		if result, err := config.UserCollection.UpdateOne(
 			ctx,
 			bson.M{"_id": objID},
 			bson.M{"$inc": bson.M{"usedStorage": -totalSizeReduction}},
 		); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update storage: " + err.Error()})
+			return
+		} else if result.MatchedCount == 0 {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found for storage update"})
 			return
 		}
 	}
@@ -534,47 +547,47 @@ func DeleteFolder(c *gin.Context) {
 	})
 }
 
-func deleteFolderRecursive(ctx context.Context, folderID primitive.ObjectID, userID string) (int64, error) {
+func deleteFolderRecursive(ctx context.Context, folderID primitive.ObjectID, userID string, folder models.File) (int64, error) {
 	var totalSizeReduction int64 = 0
-
-	var folder models.File
-	if err := config.FilesCollection.FindOne(ctx, bson.M{"_id": folderID}).Decode(&folder); err != nil {
-		return 0, err
-	}
 
 	for _, childID := range folder.Children {
 		var child models.File
 		if err := config.FilesCollection.FindOne(ctx, bson.M{"_id": childID}).Decode(&child); err != nil {
-			continue
+			if err == mongo.ErrNoDocuments {
+				log.Printf("Child %s not found, skipping", childID.Hex())
+				continue
+			}
+			return 0, fmt.Errorf("failed to get child %s: %v", childID.Hex(), err)
 		}
 
 		if child.IsFolder {
-			// Рекурсивно удаляем подпапку и суммируем размер
-			size, err := deleteFolderRecursive(ctx, childID, userID)
+			size, err := deleteFolderRecursive(ctx, childID, userID, child)
 			if err != nil {
-				return 0, err
+				return 0, fmt.Errorf("failed to delete subfolder %s: %v", childID.Hex(), err)
 			}
 			totalSizeReduction += size
 
-			// Удаляем саму подпапку
-			if _, err := config.FilesCollection.DeleteOne(ctx, bson.M{"_id": childID}); err != nil {
-				return 0, err
+			if result, err := config.FilesCollection.DeleteOne(ctx, bson.M{"_id": childID}); err != nil {
+				return 0, fmt.Errorf("failed to delete subfolder %s: %v", childID.Hex(), err)
+			} else if result.DeletedCount == 0 {
+				log.Printf("Subfolder %s not found for deletion, possibly already deleted", childID.Hex())
 			}
 		} else {
-			// Удаляем файл
 			fileSizeMB := int64((child.Size + (1<<20 - 1)) / (1 << 20))
 			if fileSizeMB < 1 {
 				fileSizeMB = 1
 			}
 			totalSizeReduction += fileSizeMB
 
-			if _, err := config.FilesCollection.DeleteOne(ctx, bson.M{"_id": childID}); err != nil {
-				return 0, err
+			if result, err := config.FilesCollection.DeleteOne(ctx, bson.M{"_id": childID}); err != nil {
+				return 0, fmt.Errorf("failed to delete file %s: %v", childID.Hex(), err)
+			} else if result.DeletedCount == 0 {
+				log.Printf("File %s not found for deletion, possibly already deleted", childID.Hex())
 			}
 
 			filePath := fmt.Sprintf("uploads/%s/%s", userID, childID.Hex())
 			if err := os.Remove(filePath); err != nil && !os.IsNotExist(err) {
-				log.Printf("Failed to delete file from disk: %v", err)
+				log.Printf("Failed to delete file from disk %s: %v", filePath, err)
 			}
 		}
 	}
