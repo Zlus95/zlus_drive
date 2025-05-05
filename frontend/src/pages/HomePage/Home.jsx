@@ -13,8 +13,13 @@ async function deleteFile(id) {
 }
 
 async function moveFile(id, parent) {
-  const { data } = await api.patch(`/file/${id}`, { parent });
-  return data;
+  try {
+    const { data } = await api.patch(`/file/${id}`, { parent });
+    return data;
+  } catch (error) {
+    console.error("Move file error:", error.response?.data || error.message);
+    throw error; // Передаём ошибку в mutation
+  }
 }
 
 async function deleteFolder(id) {
@@ -87,16 +92,23 @@ const Home = ({ data, onChangeSort, sort }) => {
   const mutationMove = useMutation({
     mutationFn: ({ id, parent }) => moveFile(id, parent),
     onSuccess: () => queryClient.invalidateQueries(["filesList"]),
+    onError: (error) => {
+      console.error("Mutation error:", error.response?.data || error.message);
+    },
   });
 
   const handleDrop = async (dragged, targetParent) => {
     if (!dragged.isFolder && !targetParent.isFolder) return;
     if (dragged.isFolder && !targetParent.isFolder) return;
 
-    await mutationMove.mutateAsync({
-      id: dragged.id,
-      parent: targetParent.id,
-    });
+    try {
+      await mutationMove.mutateAsync({
+        id: dragged.id,
+        parent: targetParent.id,
+      });
+    } catch (error) {
+      console.error("Handle drop error:", error);
+    }
   };
 
   return (
