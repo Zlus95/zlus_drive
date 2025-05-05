@@ -17,6 +17,11 @@ async function moveFile(id, parent) {
   return data;
 }
 
+async function deleteFolder(id) {
+  const { data } = await api.delete(`/folder/${id}`);
+  return data;
+}
+
 const Home = ({ data, onChangeSort, sort }) => {
   const { data: files } = data;
   const queryClient = useQueryClient();
@@ -24,6 +29,11 @@ const Home = ({ data, onChangeSort, sort }) => {
 
   const mutationDelete = useMutation({
     mutationFn: ({ id }) => deleteFile(id),
+    onSuccess: () => queryClient.invalidateQueries(["filesList"]),
+  });
+
+  const mutationDeleteFolder = useMutation({
+    mutationFn: ({ id }) => deleteFolder(id),
     onSuccess: () => queryClient.invalidateQueries(["filesList"]),
   });
 
@@ -37,6 +47,18 @@ const Home = ({ data, onChangeSort, sort }) => {
       }
     },
     [mutationDelete]
+  );
+
+  const deleteCallBackFolder = useCallback(
+    async (id) => {
+      try {
+        await mutationDeleteFolder.mutateAsync({ id });
+      } catch (error) {
+        console.error("error", error);
+        alert("Failed to delete file Please try again");
+      }
+    },
+    [mutationDeleteFolder]
   );
 
   const handleShowFile = useCallback(
@@ -53,10 +75,13 @@ const Home = ({ data, onChangeSort, sort }) => {
           text: `Are you sure you want to delete the file ${item.name}?`,
           title: "Delete file",
           submitButton: "delete",
-          onClick: () => deleteCallBack(item.id),
+          onClick: () =>
+            item.isFolder
+              ? deleteCallBackFolder(item.id)
+              : deleteCallBack(item.id),
         });
     },
-    [DIALOGS.CONFIRMATION, showDialog, deleteCallBack]
+    [DIALOGS.CONFIRMATION, showDialog, deleteCallBack, deleteCallBackFolder]
   );
 
   const mutationMove = useMutation({
