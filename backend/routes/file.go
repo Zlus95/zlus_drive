@@ -25,4 +25,6 @@ func FileRoutes(r *gin.Engine) {
 
 	r.PATCH("/file/:id", middleware.UpdateFileMiddlware(), handlers.MoveFile)
 
+	r.DELETE("/folder/:id", handlers.DeleteFolder)
+
 }
