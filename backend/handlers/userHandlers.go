@@ -184,3 +184,79 @@ func GetCurrentUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, response)
 }
+
+func ChangeStorageLimit(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
+	defer cancel()
+
+	userIDValue, ok := c.Get(middleware.UserIDKey)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "User ID not found in context"})
+		return
+	}
+
+	userID, ok := userIDValue.(string)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "User ID must be a string"})
+		return
+	}
+
+	userIDHex, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID format: " + err.Error()})
+		return
+	}
+
+	userLimitValue, ok := c.Get(middleware.StorageLimitContextKey)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Storage limit not found in context"})
+		return
+	}
+
+	userLimit, ok := userLimitValue.(int64)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid storage limit type, expected int64"})
+		return
+	}
+
+	if userLimit < 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Storage limit cannot be negative"})
+		return
+	}
+
+	userCollection := config.UserCollection
+
+	var user models.User
+	err = userCollection.FindOne(ctx, bson.M{"_id": userIDHex}).Decode(&user)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		} else {
+			log.Printf("Failed to find user %s: %v", userID, err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find user: " + err.Error()})
+		}
+		return
+	}
+
+	update := bson.M{"$set": bson.M{"storageLimit": userLimit}}
+	result, err := userCollection.UpdateOne(ctx, bson.M{"_id": userIDHex}, update)
+	if err != nil {
+		log.Printf("Failed to update storage limit for user %s: %v", userID, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update storage limit: " + err.Error()})
+		return
+	}
+
+	if result.MatchedCount == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found for update"})
+		return
+	}
+
+	if result.ModifiedCount == 0 {
+		log.Printf("Storage limit for user %s was not modified, possibly same value", userID)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":  "Storage limit changed successfully",
+		"newLimit": userLimit,
+	})
+}

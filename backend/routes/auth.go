@@ -23,4 +23,6 @@ func AuthRoutes(r *gin.Engine) {
 		handlers.GetCurrentUser,
 	)
 
+	r.PATCH("/user/update", middleware.TokenMiddlware(), middleware.StorageLimitMiddlware(), handlers.ChangeStorageLimit)
+
 }
