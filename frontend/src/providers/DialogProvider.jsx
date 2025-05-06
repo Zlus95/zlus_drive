@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useCallback } from "react";
 import Confirmation from "../dialogs/Confirmation";
 import ShowFile from "../dialogs/ShowFile";
 import CreateFolder from "../dialogs/CreateFolder";
+import StorageLimit from "../dialogs/StorageLimit";
 
 const Context = createContext();
 
@@ -9,12 +10,14 @@ export const DIALOGS = {
   CONFIRMATION: "CONFIRMATION",
   SHOW_FILE: "SHOW_FILE",
   CREATE_FOLDER: "CREATE_FOLDER",
+  STORAGE_LIMIT: "STORAGE_LIMIT",
 };
 
 const COMPONENTS = {
   CONFIRMATION: Confirmation,
   SHOW_FILE: ShowFile,
   CREATE_FOLDER: CreateFolder,
+  STORAGE_LIMIT: StorageLimit,
 };
 
 export const DialogProvider = ({ children }) => {
