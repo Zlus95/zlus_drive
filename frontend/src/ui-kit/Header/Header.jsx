@@ -9,6 +9,7 @@ import Actions from "../Actions/Actions";
 import Upload from "../Actions/Upload";
 import Folder from "../Actions/Folder";
 import SortButton from "../Actions/SortButton";
+import StorageLimit from "../Actions/StorageLimit";
 
 function useGetUser() {
   return useQuery({
@@ -126,14 +127,16 @@ const Header = ({ onChangeSort, sort }) => {
         </div>
       </header>
       <Actions>
-        <div className="flex-1 flex justify-start">
+        <div>
           <SortButton sort={sort} onChangeSort={onChangeSort} />
         </div>
-        <div className="flex gap-2 justify-center">
+        <div className="flex gap-2">
           <Upload />
           <Folder />
         </div>
-        <div className="flex-1" />
+        <div>
+          <StorageLimit />
+        </div>
       </Actions>
     </>
   );
