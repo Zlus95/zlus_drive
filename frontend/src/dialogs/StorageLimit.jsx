@@ -3,8 +3,8 @@ import Button from "../ui-kit/Button/Button";
 import api from "../api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-async function createFolder(name) {
-  const { data } = await api.post("/folder", name);
+async function changeLimit(storageLimit) {
+  const { data } = await api.patch("/user/update", storageLimit);
   return data;
 }
 
@@ -18,21 +18,21 @@ const StorageLimit = ({ onClose }) => {
     setValid(name.length > 1);
   };
 
-  const mutationCreate = useMutation({
-    mutationFn: ({ name }) => createFolder(name),
-    onSuccess: () => queryClient.invalidateQueries(["filesList"]),
+  const mutationChange = useMutation({
+    mutationFn: ({ storageLimit }) => changeLimit(storageLimit),
+    onSuccess: () => queryClient.invalidateQueries(["user"]),
   });
 
   const createCallBack = useCallback(
-    async (name) => {
+    async (storageLimit) => {
       try {
-        await mutationCreate.mutateAsync({ name });
+        await mutationChange.mutateAsync({ storageLimit });
       } catch (error) {
         console.error("error", error);
-        alert("Failed to create Folder. Please try again");
+        alert("Failed to update user. Please try again");
       }
     },
-    [mutationCreate]
+    [mutationChange]
   );
 
   const handleSubmit = (e) => {
@@ -46,7 +46,7 @@ const StorageLimit = ({ onClose }) => {
     <form className="Dialog" onSubmit={handleSubmit}>
       <div className="bgDialog">
         <div className="titleContainer">
-          <h2 className="titleDialog">Create Folder</h2>
+          <h2 className="titleDialog">Change Storage Limit</h2>
           <button
             type="button"
             onClick={onClose}
